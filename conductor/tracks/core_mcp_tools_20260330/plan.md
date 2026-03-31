@@ -7,7 +7,7 @@ This plan outlines the steps to implement the core MCP tools for interacting wit
 - [x] **Task: Initialize Rust project and dependencies** [0956465]
     - [ ] Set up `Cargo.toml` with `tokio`, `reqwest`, `serde`, `anyhow`, etc.
     - [ ] Configure `Taskfile.yml` for build and test automation.
-- [ ] **Task: Implement ChangeDetection.io API Client**
+- [x] **Task: Implement ChangeDetection.io API Client** [c693540]
     - [ ] **Sub-task: Write failing tests for API client (Red Phase)**
     - [ ] **Sub-task: Implement API client to pass tests (Green Phase)**
     - [ ] **Sub-task: Verify coverage and refactor**
