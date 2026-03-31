@@ -101,118 +101,130 @@ impl ServerHandler for McpServer {
         method: &str,
         params: Option<serde_json::Value>,
     ) -> Result<serde_json::Value, Error> {
-        match method {
-            "list_watches" => {
-                let watches = self
-                    .client
-                    .list_watches()
-                    .await
-                    .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
-                Ok(serde_json::to_value(watches)?)
+        let result = async {
+            match method {
+                "list_watches" => {
+                    let watches = self
+                        .client
+                        .list_watches()
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(watches)?)
+                }
+                "get_watch_details" => {
+                    let uuid = params
+                        .as_ref()
+                        .and_then(|p| p.get("uuid"))
+                        .and_then(|v| v.as_str())
+                        .ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
+                        })?;
+                    let watch = self
+                        .client
+                        .get_watch_details(uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(watch)?)
+                }
+                "create_watch" => {
+                    let url = params
+                        .as_ref()
+                        .and_then(|p| p.get("url"))
+                        .and_then(|v| v.as_str())
+                        .ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing 'url' parameter")
+                        })?;
+                    let tag = params
+                        .as_ref()
+                        .and_then(|p| p.get("tag"))
+                        .and_then(|v| v.as_str());
+                    let result = self
+                        .client
+                        .create_watch(url, tag)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "delete_watch" => {
+                    let uuid = params
+                        .as_ref()
+                        .and_then(|p| p.get("uuid"))
+                        .and_then(|v| v.as_str())
+                        .ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
+                        })?;
+                    let result = self
+                        .client
+                        .delete_watch(uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "trigger_check" => {
+                    let uuid = params
+                        .as_ref()
+                        .and_then(|p| p.get("uuid"))
+                        .and_then(|v| v.as_str())
+                        .ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
+                        })?;
+                    let result = self
+                        .client
+                        .trigger_check(uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "tools/list" => {
+                    let tools = vec![
+                        Tool {
+                            name: "list_watches".to_string(),
+                            description: "List all watches in ChangeDetection.io".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_watch_details".to_string(),
+                            description: "Get details of a specific watch".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "create_watch".to_string(),
+                            description: "Create a new watch".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "delete_watch".to_string(),
+                            description: "Delete a specific watch".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "trigger_check".to_string(),
+                            description: "Trigger a re-check for a specific watch".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                    ];
+                    Ok(serde_json::json!({ "tools": tools }))
+                }
+                _ => Err(Error::protocol(
+                    ErrorCode::MethodNotFound,
+                    format!("Method not found: {}", method),
+                )),
             }
-            "get_watch_details" => {
-                let uuid = params
-                    .as_ref()
-                    .and_then(|p| p.get("uuid"))
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
-                    })?;
-                let watch = self
-                    .client
-                    .get_watch_details(uuid)
-                    .await
-                    .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
-                Ok(serde_json::to_value(watch)?)
-            }
-            "create_watch" => {
-                let url = params
-                    .as_ref()
-                    .and_then(|p| p.get("url"))
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing 'url' parameter")
-                    })?;
-                let tag = params
-                    .as_ref()
-                    .and_then(|p| p.get("tag"))
-                    .and_then(|v| v.as_str());
-                let result = self
-                    .client
-                    .create_watch(url, tag)
-                    .await
-                    .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
-                Ok(serde_json::to_value(result)?)
-            }
-            "delete_watch" => {
-                let uuid = params
-                    .as_ref()
-                    .and_then(|p| p.get("uuid"))
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
-                    })?;
-                let result = self
-                    .client
-                    .delete_watch(uuid)
-                    .await
-                    .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
-                Ok(serde_json::to_value(result)?)
-            }
-            "trigger_check" => {
-                let uuid = params
-                    .as_ref()
-                    .and_then(|p| p.get("uuid"))
-                    .and_then(|v| v.as_str())
-                    .ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
-                    })?;
-                let result = self
-                    .client
-                    .trigger_check(uuid)
-                    .await
-                    .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
-                Ok(serde_json::to_value(result)?)
-            }
-            "tools/list" => {
-                let tools = vec![
-                    Tool {
-                        name: "list_watches".to_string(),
-                        description: "List all watches in ChangeDetection.io".to_string(),
-                        input_schema: None,
-                        annotations: None,
-                    },
-                    Tool {
-                        name: "get_watch_details".to_string(),
-                        description: "Get details of a specific watch".to_string(),
-                        input_schema: None,
-                        annotations: None,
-                    },
-                    Tool {
-                        name: "create_watch".to_string(),
-                        description: "Create a new watch".to_string(),
-                        input_schema: None,
-                        annotations: None,
-                    },
-                    Tool {
-                        name: "delete_watch".to_string(),
-                        description: "Delete a specific watch".to_string(),
-                        input_schema: None,
-                        annotations: None,
-                    },
-                    Tool {
-                        name: "trigger_check".to_string(),
-                        description: "Trigger a re-check for a specific watch".to_string(),
-                        input_schema: None,
-                        annotations: None,
-                    },
-                ];
-                Ok(serde_json::json!({ "tools": tools }))
-            }
-            _ => Err(Error::protocol(
-                ErrorCode::MethodNotFound,
-                format!("Method not found: {}", method),
-            )),
-        }
+        }.await;
+
+        let params_tokens = params.as_ref().map_or(0, |p| p.to_string().len());
+        let result_tokens = result.as_ref().map_or(0, |r| r.to_string().len());
+        tracing::info!(
+            "Token usage: (params: {}, result: {})",
+            params_tokens,
+            result_tokens
+        );
+
+        result
     }
 }
