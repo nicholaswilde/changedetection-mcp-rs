@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use mcp_sdk_rs::error::{Error, ErrorCode};
 use mcp_sdk_rs::server::{Server, ServerHandler};
 use mcp_sdk_rs::transport::stdio::StdioTransport;
-use mcp_sdk_rs::types::{ClientCapabilities, Implementation, ServerCapabilities};
+use mcp_sdk_rs::types::{ClientCapabilities, Implementation, ServerCapabilities, Tool};
 use std::sync::Arc;
 use tokio::io::{stdin, stdout, AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 use tokio::sync::mpsc;
@@ -20,6 +20,7 @@ impl McpServer {
     }
 
     pub async fn run(self) -> anyhow::Result<()> {
+        tracing::info!("Starting MCP server...");
         let (stdin_tx, stdin_rx) = mpsc::channel::<String>(32);
         let (stdout_tx, mut stdout_rx) = mpsc::channel::<String>(32);
 
@@ -27,15 +28,34 @@ impl McpServer {
         let handler = Arc::new(self);
         let server = Server::new(transport, handler);
 
-        // Handle stdin
+        // Keep stdin_tx alive by passing it to the task and keeping the task running
         tokio::spawn(async move {
             let mut reader = BufReader::new(stdin());
             let mut line = String::new();
             while let Ok(n) = reader.read_line(&mut line).await {
                 if n == 0 { break; }
-                let _ = stdin_tx.send(line.trim().to_string()).await;
+                let trimmed = line.trim();
+                if !trimmed.is_empty() {
+                    // mcp-sdk-rs StdioTransport::receive unwraps serde_json::from_str,
+                    // so we MUST ensure it is valid JSON before sending it to the channel.
+                    if let Ok(val) = serde_json::from_str::<serde_json::Value>(trimmed) {
+                        let mut msg = trimmed.to_string();
+                        // mcp-sdk-rs expects "initialized" notification, but protocol says "notifications/initialized"
+                        if val.get("method").and_then(|v| v.as_str()) == Some("notifications/initialized") {
+                            msg = msg.replace("notifications/initialized", "initialized");
+                        }
+                        
+                        if let Err(e) = stdin_tx.send(msg).await {
+                            tracing::error!("Failed to send to stdin channel: {}", e);
+                            break;
+                        }
+                    } else {
+                        tracing::warn!("Ignored non-JSON input: {}", trimmed);
+                    }
+                }
                 line.clear();
             }
+            tracing::info!("Stdin reader task stopped.");
         });
 
         // Handle stdout
@@ -49,6 +69,7 @@ impl McpServer {
         });
 
         server.start().await?;
+        tracing::info!("MCP server stopped.");
         Ok(())
     }
 }
@@ -60,7 +81,9 @@ impl ServerHandler for McpServer {
         _implementation: Implementation,
         _capabilities: ClientCapabilities,
     ) -> Result<ServerCapabilities, Error> {
-        Ok(ServerCapabilities::default())
+        let mut capabilities = ServerCapabilities::default();
+        capabilities.tools = Some(serde_json::json!({}));
+        Ok(capabilities)
     }
 
     async fn shutdown(&self) -> Result<(), Error> {
@@ -106,6 +129,41 @@ impl ServerHandler for McpServer {
                 let result = self.client.trigger_check(uuid).await
                     .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                 Ok(serde_json::to_value(result)?)
+            }
+            "tools/list" => {
+                let tools = vec![
+                    Tool {
+                        name: "list_watches".to_string(),
+                        description: "List all watches in ChangeDetection.io".to_string(),
+                        input_schema: None,
+                        annotations: None,
+                    },
+                    Tool {
+                        name: "get_watch_details".to_string(),
+                        description: "Get details of a specific watch".to_string(),
+                        input_schema: None,
+                        annotations: None,
+                    },
+                    Tool {
+                        name: "create_watch".to_string(),
+                        description: "Create a new watch".to_string(),
+                        input_schema: None,
+                        annotations: None,
+                    },
+                    Tool {
+                        name: "delete_watch".to_string(),
+                        description: "Delete a specific watch".to_string(),
+                        input_schema: None,
+                        annotations: None,
+                    },
+                    Tool {
+                        name: "trigger_check".to_string(),
+                        description: "Trigger a re-check for a specific watch".to_string(),
+                        input_schema: None,
+                        annotations: None,
+                    },
+                ];
+                Ok(serde_json::json!({ "tools": tools }))
             }
             _ => Err(Error::protocol(ErrorCode::MethodNotFound, format!("Method not found: {}", method))),
         }

@@ -15,21 +15,12 @@ This plan outlines the steps to implement the core MCP tools for interacting wit
 
 ## Phase 2: MCP Server Implementation
 
-- [ ] **Task: Implement MCP Server boilerplate**
-    - [ ] Set up `stdio` transport and server initialization.
-- [ ] **Task: Implement 'List Watches' tool**
-    - [ ] **Sub-task: Write failing tests (Red Phase)**
-    - [ ] **Sub-task: Implement tool to pass tests (Green Phase)**
-- [ ] **Task: Implement 'Get Watch Details' tool**
-    - [ ] **Sub-task: Write failing tests (Red Phase)**
-    - [ ] **Sub-task: Implement tool to pass tests (Green Phase)**
-- [ ] **Task: Implement 'Create Watch' tool**
-    - [ ] **Sub-task: Write failing tests (Red Phase)**
-    - [ ] **Sub-task: Implement tool to pass tests (Green Phase)**
-- [ ] **Task: Implement 'Delete Watch' tool**
-    - [ ] **Sub-task: Write failing tests (Red Phase)**
-    - [ ] **Sub-task: Implement tool to pass tests (Green Phase)**
-- [ ] **Task: Conductor - User Manual Verification 'MCP Server Implementation' (Protocol in workflow.md)**
+- [x] **Task: Implement MCP Server boilerplate** [f1c2b3a]
+- [x] **Task: Implement 'List Watches' tool** [f1c2b3a]
+- [x] **Task: Implement 'Get Watch Details' tool** [f1c2b3a]
+- [x] **Task: Implement 'Create Watch' tool** [f1c2b3a]
+- [x] **Task: Implement 'Delete Watch' tool** [f1c2b3a]
+- [x] **Task: Conductor - User Manual Verification 'MCP Server Implementation' (Protocol in workflow.md)** [checkpoint: 01e45b1]
 
 ## Phase 3: Testing & Documentation
 
