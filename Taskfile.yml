@@ -57,7 +57,7 @@ tasks:
   fmt:
     desc: Format code with rustfmt
     cmds:
-      - cargo fmt --all
+      - cargo fmt --all --check
 
   fmt:check:
     desc: Check code formatting with rustfmt

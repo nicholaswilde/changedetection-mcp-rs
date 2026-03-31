@@ -17,6 +17,8 @@ async fn main() -> anyhow::Result<()> {
         )
         .init();
 
+    tracing::debug!("Arguments parsed: {:?}", args);
+
     let api_key = args
         .api_key
         .or_else(|| env::var("CHANGEDETECTION_API_KEY").ok())
