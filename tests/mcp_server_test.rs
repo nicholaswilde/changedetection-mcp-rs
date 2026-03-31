@@ -49,3 +49,101 @@ async fn test_mcp_tools_list() {
     assert!(tool_names.contains(&"delete_watch"));
     assert!(tool_names.contains(&"trigger_check"));
 }
+
+#[tokio::test]
+async fn test_mcp_get_watch_details() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    let uuid = "watch_id_1";
+    let response_body = json!({
+        "url": "https://example.com",
+        "title": "Example"
+    });
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/v1/watch/{}", uuid)))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+        .mount(&mock_server)
+        .await;
+
+    let params = json!({ "uuid": uuid });
+    let result = server.handle_method("get_watch_details", Some(params)).await.unwrap();
+    
+    let watch: serde_json::Value = serde_json::from_value(result).unwrap();
+    assert_eq!(watch["url"], "https://example.com");
+}
+
+#[tokio::test]
+async fn test_mcp_create_watch() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    let response_body = json!({
+        "status": "success",
+        "uuid": "watch_id_1"
+    });
+
+    Mock::given(method("POST"))
+        .and(path("/api/v1/watch"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(response_body))
+        .mount(&mock_server)
+        .await;
+
+    let params = json!({ "url": "https://example.com" });
+    let result = server.handle_method("create_watch", Some(params)).await.unwrap();
+    
+    let res: serde_json::Value = serde_json::from_value(result).unwrap();
+    assert_eq!(res["status"], "success");
+    assert_eq!(res["uuid"], "watch_id_1");
+}
+
+#[tokio::test]
+async fn test_mcp_delete_watch() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    let uuid = "watch_id_1";
+    let response_body = json!({
+        "status": "success"
+    });
+
+    Mock::given(method("DELETE"))
+        .and(path(format!("/api/v1/watch/{}", uuid)))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+        .mount(&mock_server)
+        .await;
+
+    let params = json!({ "uuid": uuid });
+    let result = server.handle_method("delete_watch", Some(params)).await.unwrap();
+    
+    let res: serde_json::Value = serde_json::from_value(result).unwrap();
+    assert_eq!(res["status"], "success");
+}
+
+#[tokio::test]
+async fn test_mcp_trigger_check() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    let uuid = "watch_id_1";
+    let response_body = json!({
+        "status": "success"
+    });
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/v1/watch/{}/recheck", uuid)))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+        .mount(&mock_server)
+        .await;
+
+    let params = json!({ "uuid": uuid });
+    let result = server.handle_method("trigger_check", Some(params)).await.unwrap();
+    
+    let res: serde_json::Value = serde_json::from_value(result).unwrap();
+    assert_eq!(res["status"], "success");
+}
