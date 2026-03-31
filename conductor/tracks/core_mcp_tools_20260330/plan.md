@@ -20,14 +20,10 @@ This plan outlines the steps to implement the core MCP tools for interacting wit
 - [x] **Task: Implement 'Get Watch Details' tool** [f1c2b3a]
 - [x] **Task: Implement 'Create Watch' tool** [f1c2b3a]
 - [x] **Task: Implement 'Delete Watch' tool** [f1c2b3a]
-- [x] **Task: Conductor - User Manual Verification 'MCP Server Implementation' (Protocol in workflow.md)** [checkpoint: 01e45b1]
+- [x] **Task: Conductor - User Manual Verification 'MCP Server Implementation' (Protocol in workflow.md)** [checkpoint: d8a4163]
 
 ## Phase 3: Testing & Documentation
 
-- [ ] **Task: Comprehensive integration testing**
-    - [ ] Set up `testcontainers-rs` with ChangeDetection.io image.
-    - [ ] Run end-to-end tests for all MCP tools.
-- [ ] **Task: Finalize documentation**
-    - [ ] Update `README.md` with tool definitions and usage examples.
-    - [ ] Ensure all public items have doc comments.
+- [x] **Task: Comprehensive integration testing** [d8a4163]
+- [x] **Task: Finalize documentation** [d8a4163]
 - [ ] **Task: Conductor - User Manual Verification 'Testing & Documentation' (Protocol in workflow.md)**
