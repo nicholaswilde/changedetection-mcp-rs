@@ -1,0 +1,26 @@
+[package]
+name = "changedetection-mcp-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.37.0", features = ["full"] }
+reqwest = { version = "0.12.4", features = ["json"] }
+serde = { version = "1.0.201", features = ["derive"] }
+serde_json = "1.0.117"
+anyhow = "1.0.83"
+thiserror = "1.0.60"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+clap = { version = "4.5.4", features = ["derive", "env"] }
+url = "2.5.0"
+mcp-sdk-rs = "0.3.4"
+# Add other dependencies from tech-stack.md if needed
+dashmap = "5.5.3"
+futures = "0.3.30"
+async-trait = "0.1.80"
+uuid = { version = "1.8.0", features = ["v4", "serde"] }
+
+[dev-dependencies]
+wiremock = "0.6.0"
+tokio-test = "0.4.5"

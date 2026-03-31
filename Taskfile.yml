@@ -1,0 +1,96 @@
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  BINARY: target/release/changedetection-mcp-rs
+
+tasks:
+  clippy:
+    desc: Run cargo clippy
+    cmds:
+      - cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  default:
+    cmds:
+      - task -l
+
+  update:
+    desc: Update all cargo dependencies
+    cmds:
+      - cargo update
+
+  build:local:
+    desc: Build the project in release mode for the current architecture
+    cmds:
+      - cargo build --release
+
+  build:debug:
+    desc: Build the project in debug mode
+    cmds:
+      - cargo build
+
+  run:
+    desc: Run the project
+    cmds:
+      - cargo run
+
+  check:
+    desc: Check code for errors without generating binary
+    cmds:
+      - cargo check
+
+  test:
+    desc: Run unit tests only
+    cmds:
+      - cargo test --lib --tests
+
+  test:ci:
+    desc: Run all checks (format, lint, and unit tests)
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test
+      - task: clippy
+
+  fmt:
+    desc: Format code with rustfmt
+    cmds:
+      - cargo fmt --all
+
+  fmt:check:
+    desc: Check code formatting with rustfmt
+    cmds:
+      - cargo fmt -- --check
+
+  docs:
+    desc: Generate documentation
+    cmds:
+      - cargo doc --no-deps
+
+  lint:
+    desc: Lint code with clippy
+    cmds:
+      - cargo clippy -- -D warnings
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - cargo clean
+
+  inspector:
+    desc: Run MCP Inspector (requires npx)
+    cmds:
+      - task: build:local
+      - npx @modelcontextprotocol/inspector {{.BINARY}}
+
+  coverage:
+    desc: Run tests and show coverage summary
+    cmds:
+      - cargo llvm-cov --workspace --all-features --summary-only
+
+  coverage:report:
+    desc: Generate coverage reports (lcov and html)
+    cmds:
+      - cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+      - cargo llvm-cov --workspace --all-features --html
