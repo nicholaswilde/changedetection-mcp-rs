@@ -147,3 +147,29 @@ async fn test_mcp_trigger_check() {
     let res: serde_json::Value = serde_json::from_value(result).unwrap();
     assert_eq!(res["status"], "success");
 }
+
+#[tokio::test]
+async fn test_mcp_get_watch_details_missing_params() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    let result = server.handle_method("get_watch_details", None).await;
+    assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn test_mcp_api_error() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/watch"))
+        .respond_with(ResponseTemplate::new(500))
+        .mount(&mock_server)
+        .await;
+
+    let result = server.handle_method("list_watches", None).await;
+    assert!(result.is_err());
+}
