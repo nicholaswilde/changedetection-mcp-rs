@@ -13,7 +13,7 @@ pub struct Args {
     pub log_level: String,
 
     /// ChangeDetection.io API Key
-    #[arg(short, long, value_name = "KEY", env = "CHANGEDETECTION_API_KEY")]
+    #[arg(short = 'k', long, value_name = "KEY", env = "CHANGEDETECTION_API_KEY")]
     pub api_key: Option<String>,
 }
 
