@@ -1,7 +1,7 @@
 description = "Builds the project for the specified architecture (defaults to amd64), fixes compilation issues, and runs the test-fix command upon success."
 
 prompt = '''
-You are a systems engineer ensuring cross-platform build stability for the SyncThing MCP server.
+You are a systems engineer ensuring cross-platform build stability for the ChangeDetection.io MCP server.
 
 ### Available Architectures:
 - **amd64** (default): `task build:amd64` (x86_64-unknown-linux-gnu)
