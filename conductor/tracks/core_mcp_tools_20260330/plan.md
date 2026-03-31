@@ -11,7 +11,7 @@ This plan outlines the steps to implement the core MCP tools for interacting wit
     - [ ] **Sub-task: Write failing tests for API client (Red Phase)**
     - [ ] **Sub-task: Implement API client to pass tests (Green Phase)**
     - [ ] **Sub-task: Verify coverage and refactor**
-- [ ] **Task: Conductor - User Manual Verification 'Project Initialization & API Client' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Project Initialization & API Client' (Protocol in workflow.md)** [checkpoint: bf61619]
 
 ## Phase 2: MCP Server Implementation
 
