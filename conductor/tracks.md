@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Implement core MCP tools for ChangeDetection.io**
+- [x] **Track: Implement core MCP tools for ChangeDetection.io**
   *Link: [./tracks/core_mcp_tools_20260330/](./tracks/core_mcp_tools_20260330/)*
