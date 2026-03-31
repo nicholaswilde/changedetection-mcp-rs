@@ -1,0 +1,12 @@
+// {}
+{
+  "mcpServers": {
+    "changedetection": {
+        "command": "cargo",
+        "args": [
+          "run"
+        ],
+        "trust": true
+    }
+  }
+}

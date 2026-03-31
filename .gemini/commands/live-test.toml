@@ -1,0 +1,18 @@
+description = "Runs the live CI suite against a real SyncThing instance using credentials from .env."
+
+prompt = '''
+You are a senior engineer verifying the SyncThing MCP server against a live instance.
+
+### Workflow:
+1.  **Preparation**: Ensure the `.env` file exists and contains the necessary `SYNCTHING_API_KEY`.
+2.  **Execution**: Run `task test:live`. This will execute the `tests/live.rs` suite which covers:
+    -   System status and version retrieval.
+    -   Tool execution (manage_folders, manage_devices, get_system_stats).
+    -   Folder browsing and ignore pattern management.
+    -   Event retrieval.
+3.  **Analysis**: Capture and report the output of the tests. If any tests fail, investigate if the SyncThing instance is reachable or if there's an authentication issue.
+4.  **Security**: Do NOT print or leak the API key or any sensitive data from the `.env` file in your response.
+
+### Execution:
+Please run `task test:live` now and report the results.
+'''

@@ -27,8 +27,8 @@ pub struct Client {
 impl Client {
     pub fn new(base_url: String, api_key: String) -> Self {
         let mut headers = HeaderMap::new();
-        if let Ok(val) = HeaderValue::from_str(&format!("token {}", api_key)) {
-            headers.insert("Authorization", val);
+        if let Ok(val) = HeaderValue::from_str(&api_key) {
+            headers.insert("x-api-key", val);
         }
 
         let http_client = reqwest::Client::builder()
