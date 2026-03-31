@@ -104,9 +104,13 @@ impl ServerHandler for McpServer {
         let result = async {
             match method {
                 "list_watches" => {
+                    let tag = params
+                        .as_ref()
+                        .and_then(|p| p.get("tag"))
+                        .and_then(|v| v.as_str());
                     let watches = self
                         .client
-                        .list_watches()
+                        .list_watches(tag)
                         .await
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(watches)?)

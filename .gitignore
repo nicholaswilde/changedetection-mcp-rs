@@ -33,9 +33,4 @@ config.yaml
 config.yml
 lcov.info
 
-
-# Added by cargo
-#
-# already existing elements were commented out
-
-#/target
+**/settings.json

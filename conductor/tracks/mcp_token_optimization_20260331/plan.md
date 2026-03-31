@@ -4,7 +4,7 @@
     -   Add logging to the MCP server to track the number of tokens used in each request and response.
     -   Analyze the logs to identify the most token-intensive operations.
 
-2.  **Identify Optimization Opportunities:**
+2.  **[~] Identify Optimization Opportunities:**
     -   Review the code to find areas where prompts can be made more concise.
     -   Investigate using smaller models for certain tasks.
     -   Explore techniques like prompt chaining and few-shot learning to reduce the number of tokens required.

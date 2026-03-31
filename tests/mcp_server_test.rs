@@ -2,8 +2,37 @@ use changedetection_mcp_rs::api::Client;
 use changedetection_mcp_rs::mcp::McpServer;
 use mcp_sdk_rs::server::ServerHandler;
 use serde_json::json;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
+
+#[tokio::test]
+async fn test_mcp_list_watches_with_tag() {
+    let mock_server = MockServer::start().await;
+    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let server = McpServer::new(client);
+
+    let response_body = json!({
+        "watch_id_1": {
+            "url": "https://example.com",
+            "title": "Example"
+        }
+    });
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/watch"))
+        .and(query_param("tag", "test"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+        .mount(&mock_server)
+        .await;
+
+    let params = json!({ "tag": "test" });
+    let result = server.handle_method("list_watches", Some(params)).await.unwrap();
+    
+    let watches: serde_json::Value = serde_json::from_value(result).unwrap();
+    assert!(watches.get("watch_id_1").is_some());
+    assert_eq!(watches["watch_id_1"]["url"], "https://example.com");
+}
+
 
 #[tokio::test]
 async fn test_mcp_list_watches() {
@@ -173,3 +202,5 @@ async fn test_mcp_api_error() {
     let result = server.handle_method("list_watches", None).await;
     assert!(result.is_err());
 }
+
+

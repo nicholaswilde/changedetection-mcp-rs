@@ -29,6 +29,7 @@ uuid = { version = "1.8.0", features = ["v4", "serde"] }
 [dev-dependencies]
 wiremock = "0.6.0"
 tokio-test = "0.4.5"
+tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 
 # Profile for final production releases (smaller, faster)
 [profile.release]

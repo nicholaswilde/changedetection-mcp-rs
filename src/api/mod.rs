@@ -42,8 +42,11 @@ impl Client {
         }
     }
 
-    pub async fn list_watches(&self) -> Result<HashMap<String, Watch>, ApiError> {
-        let url = format!("{}/api/v1/watch", self.base_url);
+    pub async fn list_watches(&self, tag: Option<&str>) -> Result<HashMap<String, Watch>, ApiError> {
+        let mut url = format!("{}/api/v1/watch", self.base_url);
+        if let Some(tag) = tag {
+            url.push_str(&format!("?tag={}", tag));
+        }
         let response = self.http_client.get(&url).send().await?;
         let watches = response.json::<HashMap<String, Watch>>().await?;
         Ok(watches)
