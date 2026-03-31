@@ -1,42 +1,52 @@
-# changedetection-mcp-rs
+# 🔄 ChangeDetection.io MCP Server (Rust) 🤖
 
-A Model Context Protocol (MCP) server for [ChangeDetection.io](https://changedetection.io/), built in Rust.
+[![task](https://img.shields.io/badge/Task-Enabled-brightgreen?style=for-the-badge&logo=task&logoColor=white)](https://taskfile.dev/#/)
 
-## Features
+> [!WARNING]
+> This project is currently in active development (v0.1.0) and is **not production-ready**.
+> Features may change, and breaking changes may occur without notice. **Use this MCP server at your own risk.**
 
-This server provides the following MCP tools to interact with a ChangeDetection.io instance:
+A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MCP (Model Context Protocol) server](https://modelcontextprotocol.io/docs/getting-started/intro). This server connects to a ChangeDetection.io instance and exposes tools to monitor website changes via the Model Context Protocol.
 
-- `list_watches`: Retrieve a list of all current website watches.
-- `get_watch_details`: Fetch detailed information for a specific watch using its UUID.
-- `create_watch`: Add a new URL to track for changes.
-- `delete_watch`: Remove an existing watch.
-- `trigger_check`: Manually force a re-check for a specific watch.
+## ✨ Features
 
-## Prerequisites
+- **Standard Tools:**
+    - `list_watches`: List all watches in ChangeDetection.io.
+    - `get_watch_details`: Get details of a specific watch.
+    - `create_watch`: Create a new watch.
+    - `delete_watch`: Delete a specific watch.
+    - `trigger_check`: Trigger a re-check for a specific watch.
+- **Multi-Transport Support:**
+  - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
+- **Robust Configuration:** Supports configuration via environment variables.
+- **Security & Privacy:**
+  - **API Key Authentication:** Connects to ChangeDetection.io using the `x-api-key` header.
 
-- A running [ChangeDetection.io](https://changedetection.io/) instance.
-- An API Key from the ChangeDetection.io settings (ensure "API Access Token Enabled" is checked).
+## 🛠️ Build
 
-## Installation
+To build the project, you need a Rust toolchain installed.
 
-### From Source
+### Local Build
 
 ```bash
-git clone https://github.com/nicholaswilde/changedetection-mcp-rs.git
-cd changedetection-mcp-rs
-cargo build --release
+# Build in release mode
+task build:local
 ```
 
-## Configuration
+The binary will be available at `target/release/changedetection-mcp-rs`.
 
-The server requires the following environment variables:
+## 🚀 Usage
 
-- `CHANGEDETECTION_API_KEY`: Your ChangeDetection.io API token.
-- `CHANGEDETECTION_BASE_URL`: The base URL of your ChangeDetection.io instance (e.g., `http://localhost:5000` or `https://cd.example.com`).
+### ⌨️ Command Line Interface
 
-## Usage
+The server is configured via environment variables.
 
-### Claude Desktop
+```bash
+# Run the MCP server
+CHANGEDETECTION_API_KEY=your_key CHANGEDETECTION_BASE_URL=http://localhost:5000 ./target/release/changedetection-mcp-rs
+```
+
+### 🤖 Configuration Example (Claude Desktop)
 
 Add the following to your `claude_desktop_config.json`:
 
@@ -54,14 +64,35 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
-### MCP Inspector
+## 🧪 Testing
 
-To test the server using the MCP Inspector:
+The project uses [go-task](https://taskfile.dev/) for development tasks.
 
 ```bash
-CHANGEDETECTION_API_KEY=your_key CHANGEDETECTION_BASE_URL=your_url npx @modelcontextprotocol/inspector ./target/release/changedetection-mcp-rs
+# Run unit tests
+task test
+
+# Run MCP Inspector (requires npx)
+task inspector
 ```
 
-## License
+### 📊 Coverage
 
-MIT
+The project uses `cargo-llvm-cov` for code coverage analysis.
+
+```bash
+# Show coverage summary in console
+task coverage
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow standard Rust coding conventions and ensure all tests pass (`task check`) before submitting features.
+
+## ⚖️ License
+
+[Apache License 2.0](LICENSE)
+
+## ✍️ Author
+
+This project was started in 2026 by [Nicholas Wilde](https://github.com/nicholaswilde/).
