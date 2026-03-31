@@ -32,8 +32,9 @@ tasks:
 
   run:
     desc: Run the project
+    deps: [build:debug]
     cmds:
-      - cargo run
+      - ./target/debug/changedetection-mcp-rs
 
   check:
     desc: Check code for errors without generating binary
