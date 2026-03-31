@@ -22,3 +22,33 @@ impl Args {
         Self::parse()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_args_default() {
+        let args = Args::try_parse_from(["changedetection-mcp-rs"]).unwrap();
+        assert_eq!(args.log_level, "info");
+        assert_eq!(args.config, None);
+        assert_eq!(args.api_key, None);
+    }
+
+    #[test]
+    fn test_parse_args_custom() {
+        let args = Args::try_parse_from([
+            "changedetection-mcp-rs",
+            "--log-level",
+            "debug",
+            "--config",
+            "test.toml",
+            "--api-key",
+            "test-key",
+        ])
+        .unwrap();
+        assert_eq!(args.log_level, "debug");
+        assert_eq!(args.config, Some("test.toml".to_string()));
+        assert_eq!(args.api_key, Some("test-key".to_string()));
+    }
+}
