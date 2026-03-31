@@ -13,6 +13,6 @@
     -   Implement the identified optimizations in the MCP server.
     -   A/B test the optimizations to ensure they do not negatively impact functionality.
 
-4.  **Quantify Impact:**
+4.  **[~] Quantify Impact:**
     -   Measure the reduction in token usage after implementing the optimizations.
     -   Document the findings and best practices for token optimization.
