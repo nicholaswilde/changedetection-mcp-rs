@@ -33,7 +33,9 @@ impl McpServer {
             let mut reader = BufReader::new(stdin());
             let mut line = String::new();
             while let Ok(n) = reader.read_line(&mut line).await {
-                if n == 0 { break; }
+                if n == 0 {
+                    break;
+                }
                 let trimmed = line.trim();
                 if !trimmed.is_empty() {
                     // mcp-sdk-rs StdioTransport::receive unwraps serde_json::from_str,
@@ -41,10 +43,12 @@ impl McpServer {
                     if let Ok(val) = serde_json::from_str::<serde_json::Value>(trimmed) {
                         let mut msg = trimmed.to_string();
                         // mcp-sdk-rs expects "initialized" notification, but protocol says "notifications/initialized"
-                        if val.get("method").and_then(|v| v.as_str()) == Some("notifications/initialized") {
+                        if val.get("method").and_then(|v| v.as_str())
+                            == Some("notifications/initialized")
+                        {
                             msg = msg.replace("notifications/initialized", "initialized");
                         }
-                        
+
                         if let Err(e) = stdin_tx.send(msg).await {
                             tracing::error!("Failed to send to stdin channel: {}", e);
                             break;
@@ -81,8 +85,10 @@ impl ServerHandler for McpServer {
         _implementation: Implementation,
         _capabilities: ClientCapabilities,
     ) -> Result<ServerCapabilities, Error> {
-        let mut capabilities = ServerCapabilities::default();
-        capabilities.tools = Some(serde_json::json!({}));
+        let capabilities = ServerCapabilities {
+            tools: Some(serde_json::json!({})),
+            ..Default::default()
+        };
         Ok(capabilities)
     }
 
@@ -97,36 +103,74 @@ impl ServerHandler for McpServer {
     ) -> Result<serde_json::Value, Error> {
         match method {
             "list_watches" => {
-                let watches = self.client.list_watches().await
+                let watches = self
+                    .client
+                    .list_watches()
+                    .await
                     .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                 Ok(serde_json::to_value(watches)?)
             }
             "get_watch_details" => {
-                let uuid = params.as_ref().and_then(|p| p.get("uuid")).and_then(|v| v.as_str())
-                    .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter"))?;
-                let watch = self.client.get_watch_details(uuid).await
+                let uuid = params
+                    .as_ref()
+                    .and_then(|p| p.get("uuid"))
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
+                    })?;
+                let watch = self
+                    .client
+                    .get_watch_details(uuid)
+                    .await
                     .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                 Ok(serde_json::to_value(watch)?)
             }
             "create_watch" => {
-                let url = params.as_ref().and_then(|p| p.get("url")).and_then(|v| v.as_str())
-                    .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing 'url' parameter"))?;
-                let tag = params.as_ref().and_then(|p| p.get("tag")).and_then(|v| v.as_str());
-                let result = self.client.create_watch(url, tag).await
+                let url = params
+                    .as_ref()
+                    .and_then(|p| p.get("url"))
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing 'url' parameter")
+                    })?;
+                let tag = params
+                    .as_ref()
+                    .and_then(|p| p.get("tag"))
+                    .and_then(|v| v.as_str());
+                let result = self
+                    .client
+                    .create_watch(url, tag)
+                    .await
                     .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                 Ok(serde_json::to_value(result)?)
             }
             "delete_watch" => {
-                let uuid = params.as_ref().and_then(|p| p.get("uuid")).and_then(|v| v.as_str())
-                    .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter"))?;
-                let result = self.client.delete_watch(uuid).await
+                let uuid = params
+                    .as_ref()
+                    .and_then(|p| p.get("uuid"))
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
+                    })?;
+                let result = self
+                    .client
+                    .delete_watch(uuid)
+                    .await
                     .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                 Ok(serde_json::to_value(result)?)
             }
             "trigger_check" => {
-                let uuid = params.as_ref().and_then(|p| p.get("uuid")).and_then(|v| v.as_str())
-                    .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter"))?;
-                let result = self.client.trigger_check(uuid).await
+                let uuid = params
+                    .as_ref()
+                    .and_then(|p| p.get("uuid"))
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing 'uuid' parameter")
+                    })?;
+                let result = self
+                    .client
+                    .trigger_check(uuid)
+                    .await
                     .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                 Ok(serde_json::to_value(result)?)
             }
@@ -165,7 +209,10 @@ impl ServerHandler for McpServer {
                 ];
                 Ok(serde_json::json!({ "tools": tools }))
             }
-            _ => Err(Error::protocol(ErrorCode::MethodNotFound, format!("Method not found: {}", method))),
+            _ => Err(Error::protocol(
+                ErrorCode::MethodNotFound,
+                format!("Method not found: {}", method),
+            )),
         }
     }
 }

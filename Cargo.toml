@@ -2,6 +2,11 @@
 name = "changedetection-mcp-rs"
 version = "0.1.0"
 edition = "2021"
+authors = ["Nicholas Wilde <nicholas@nicholaswilde.io>"]
+description = "A Model Context Protocol (MCP) server for ChangeDetection.io"
+license = "Apache-2.0"
+repository = "https://github.com/nicholaswilde/changedetection-mcp-rs"
+readme = "README.md"
 
 [dependencies]
 tokio = { version = "1.37.0", features = ["full"] }
@@ -24,3 +29,17 @@ uuid = { version = "1.8.0", features = ["v4", "serde"] }
 [dev-dependencies]
 wiremock = "0.6.0"
 tokio-test = "0.4.5"
+
+# Profile for final production releases (smaller, faster)
+[profile.release]
+opt-level = "z" # Optimize for size
+lto = true # Link Time Optimization (smaller binary)
+codegen-units = 1 # Reduce parallel code generation for better optimization
+panic = "abort" # Remove stack unwinding (smaller binary)
+strip = true # Strip symbols (smaller binary)
+
+# Profile for CI/CD builds (inherits from dev)
+[profile.ci]
+inherits = "dev"
+incremental = false # Disable incremental compilation for CI
+debug = 0 # No debug info needed for basic CI checks

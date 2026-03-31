@@ -56,7 +56,11 @@ impl Client {
         Ok(watch)
     }
 
-    pub async fn create_watch(&self, url: &str, tag: Option<&str>) -> Result<HashMap<String, String>, ApiError> {
+    pub async fn create_watch(
+        &self,
+        url: &str,
+        tag: Option<&str>,
+    ) -> Result<HashMap<String, String>, ApiError> {
         let endpoint = format!("{}/api/v1/watch", self.base_url);
         let mut body = HashMap::new();
         body.insert("url", url.to_string());

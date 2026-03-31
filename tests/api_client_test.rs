@@ -1,7 +1,7 @@
 use changedetection_mcp_rs::api::Client;
+use serde_json::json;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
-use serde_json::json;
 
 #[tokio::test]
 async fn test_list_watches() {
@@ -62,7 +62,10 @@ async fn test_create_watch() {
         .mount(&mock_server)
         .await;
 
-    let result = client.create_watch("https://example.com", None).await.unwrap();
+    let result = client
+        .create_watch("https://example.com", None)
+        .await
+        .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
     assert_eq!(result.get("uuid").unwrap(), "watch_id_1");
 }
