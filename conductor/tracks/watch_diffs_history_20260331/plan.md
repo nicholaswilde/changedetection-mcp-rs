@@ -12,5 +12,5 @@
    - Add `get_watch_diff` tool and schema.
    - Wire them into `handle_method` in `src/mcp/mod.rs`.
 
-4. [ ] **MCP Server Tests:**
+4. [x] **MCP Server Tests:** (3e0e8b9)
    - Write integration tests in `tests/mcp_server_test.rs` to verify the new tools.
