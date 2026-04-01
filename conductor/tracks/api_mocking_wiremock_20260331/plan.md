@@ -9,7 +9,7 @@
 3. [x] **Simulate Network Conditions:** (67da0d2)
    - Use `wiremock` to simulate network timeouts and slow responses to verify the client's timeout handling.
 
-4. [ ] **Handle Malformed Responses:**
+4. [x] **Handle Malformed Responses:** (e7dae23)
    - Add tests where the mock server returns malformed or unexpected JSON to ensure the client fails gracefully.
 
 5. [ ] **Verification:**
