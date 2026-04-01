@@ -1,6 +1,6 @@
 # Implementation Plan
 
-1. [ ] **API Client Extension:**
+1. [x] **API Client Extension:** (b4dfb4b)
    - Add `get_watch_history(uuid: &str)` to the `Client` in `src/api/mod.rs`.
    - Add `get_watch_diff(uuid: &str, from: &str, to: &str)` to the `Client` in `src/api/mod.rs`.
    
