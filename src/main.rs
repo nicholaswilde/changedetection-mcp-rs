@@ -9,7 +9,11 @@ use std::env;
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    let _guard = init_tracing(&args.log_level, None, false);
+    let _guard = init_tracing(
+        &args.log_level,
+        args.log_file.as_deref(),
+        args.log_format == changedetection_mcp_rs::cli::LogFormat::Json,
+    );
 
     tracing::debug!("Arguments parsed: {:?}", args);
 
