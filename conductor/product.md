@@ -25,6 +25,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 
 ## Design Principles
 - **Rust-powered Efficiency:** Leverage Rust's performance and safety for a reliable server.
+- **Resilient API Communication:** Implement robust retry and caching strategies to ensure reliable interaction with ChangeDetection.io, even under adverse network conditions.
 - **MCP Compliance:** Adhere strictly to the Model Context Protocol for maximum compatibility.
 - **Secure API Interaction:** Securely handle ChangeDetection.io API keys and connection settings.
 - **Developer-Centric:** Provide clear tool definitions and informative error messages.

@@ -3,6 +3,7 @@
 ## 1. Code Style & Architecture (Rust)
 * **Safety First**: Utilize Rust's ownership and borrowing systems to prevent memory leaks and data races.
 * **Async Efficiency**: Use `tokio` for high-concurrency, asynchronous operations, particularly for network-bound tasks with the ChangeDetection.io API.
+* **Resilient Network Communication**: Implement exponential backoff retries and HTTP caching to ensure robustness against transient network failures and reduce server load.
 * **Error Handling**: Implement custom error types using crates like `thiserror` or `anyhow` for clear, actionable error messages.
 * **Modularity**: Organize code into clean abstractions (e.g., `api/`, `mcp/`, `config/`) to ensure long-term maintainability.
 * **Documentation**: Maintain comprehensive inline documentation (using `///` comments) for all public items, enforced by `#![deny(missing_docs)]` in `src/lib.rs`. The `README.md` must be updated whenever MCP tools or functions are added or modified to ensure the AI tool list remains accurate.
