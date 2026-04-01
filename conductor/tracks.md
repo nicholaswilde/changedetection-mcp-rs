@@ -9,7 +9,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Scriptable API Integration Testing
+## [x] Track: Scriptable API Integration Testing
 - **Track Folder:** [./tracks/hurl_integration_tests_20260331/](./tracks/hurl_integration_tests_20260331/)
 
 ---
