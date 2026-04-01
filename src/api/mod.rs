@@ -4,6 +4,7 @@ use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::time::Duration;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -32,6 +33,10 @@ pub struct Client {
 
 impl Client {
     pub fn new(base_url: String, api_key: String) -> Self {
+        Self::new_with_timeout(base_url, api_key, Duration::from_secs(10))
+    }
+
+    pub fn new_with_timeout(base_url: String, api_key: String, timeout: Duration) -> Self {
         let mut headers = HeaderMap::new();
         if let Ok(val) = HeaderValue::from_str(&api_key) {
             headers.insert("x-api-key", val);
@@ -39,6 +44,7 @@ impl Client {
 
         let reqwest_client = reqwest::Client::builder()
             .default_headers(headers)
+            .timeout(timeout)
             .build()
             .expect("Failed to build HTTP client");
 
@@ -72,7 +78,7 @@ impl Client {
 
     pub async fn get_watch_details(&self, uuid: &str) -> Result<Watch, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self.http_client.get(&url).send().await?;
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
         let watch = response.json::<Watch>().await?;
         Ok(watch)
     }
@@ -89,14 +95,14 @@ impl Client {
             body.insert("tag", tag.to_string());
         }
 
-        let response = self.http_client.post(&endpoint).json(&body).send().await?;
+        let response = self.http_client.post(&endpoint).json(&body).send().await?.error_for_status()?;
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }
 
     pub async fn delete_watch(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self.http_client.delete(&url).send().await?;
+        let response = self.http_client.delete(&url).send().await?.error_for_status()?;
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }

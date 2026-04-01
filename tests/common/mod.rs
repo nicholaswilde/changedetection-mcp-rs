@@ -11,8 +11,12 @@ pub struct MockApp {
 
 impl MockApp {
     pub async fn new() -> Self {
+        Self::new_with_timeout(std::time::Duration::from_secs(10)).await
+    }
+
+    pub async fn new_with_timeout(timeout: std::time::Duration) -> Self {
         let server = MockServer::start().await;
-        let client = Client::new(server.uri(), "test_api_key".to_string());
+        let client = Client::new_with_timeout(server.uri(), "test_api_key".to_string(), timeout);
         let mcp = McpServer::new(client.clone());
         
         Self {
