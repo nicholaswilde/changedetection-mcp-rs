@@ -7,7 +7,7 @@
 2. [x] **Enhance Tracing Subscriber:** (256b57f)
    - Configure the subscriber to support both human-readable (stdout) and structured (file/JSON) outputs.
 
-3. [ ] **Implement Request Correlation:**
+3. [x] **Implement Request Correlation:** (3a9ab1f)
    - Add a middleware or context layer to inject and propagate a `Request-Id` in all logs related to a single operation.
 
 4. [ ] **Update CLI Configuration:**
