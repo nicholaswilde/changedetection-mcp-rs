@@ -7,7 +7,7 @@
 2. [x] **API Client Tests:** (1ca2497)
    - Update `tests/api_client_test.rs` with mock endpoints for these new methods.
 
-3. [ ] **MCP Tool Definitions:**
+3. [x] **MCP Tool Definitions:** (1ca021c)
    - Add `get_watch_history` tool and schema.
    - Add `get_watch_diff` tool and schema.
    - Wire them into `handle_method` in `src/mcp/mod.rs`.
