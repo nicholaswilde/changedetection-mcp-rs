@@ -6,7 +6,7 @@
 2. [x] **Test Edge Cases (HTTP Errors):** (ce88d13)
    - Add tests for all possible HTTP error codes returned by the API (e.g., 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error).
 
-3. [ ] **Simulate Network Conditions:**
+3. [x] **Simulate Network Conditions:** (67da0d2)
    - Use `wiremock` to simulate network timeouts and slow responses to verify the client's timeout handling.
 
 4. [ ] **Handle Malformed Responses:**
