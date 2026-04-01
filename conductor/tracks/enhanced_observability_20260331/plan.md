@@ -10,7 +10,7 @@
 3. [x] **Implement Request Correlation:** (3a9ab1f)
    - Add a middleware or context layer to inject and propagate a `Request-Id` in all logs related to a single operation.
 
-4. [ ] **Update CLI Configuration:**
+4. [x] **Update CLI Configuration:** (63dfa57)
    - Add `--log-format` and `--log-file` arguments to the CLI to allow users to configure observability at runtime.
 
 5. [ ] **Validation:**
