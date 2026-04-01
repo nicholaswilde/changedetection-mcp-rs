@@ -20,5 +20,5 @@
 5. [x] **CI Integration:** 8122d10
    - Update `.github/workflows/` to run Hurl tests as part of the CI pipeline.
 
-6. [ ] **Documentation:**
+6. [x] **Documentation:** 7ab4e46
    - Add instructions in `README.md` or a new `TESTING.md` on how to run and write Hurl tests.
