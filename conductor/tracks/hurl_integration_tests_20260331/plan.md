@@ -17,7 +17,7 @@
 4. [x] **Update Taskfile:** 69746f5
    - Add a `test-hurl` task to `Taskfile.yml` to run all Hurl tests.
 
-5. [ ] **CI Integration:**
+5. [x] **CI Integration:** 8122d10
    - Update `.github/workflows/` to run Hurl tests as part of the CI pipeline.
 
 6. [ ] **Documentation:**
