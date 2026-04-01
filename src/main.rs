@@ -1,21 +1,15 @@
 use changedetection_mcp_rs::api::Client;
 use changedetection_mcp_rs::cli::Args;
 use changedetection_mcp_rs::mcp::McpServer;
+use changedetection_mcp_rs::observability::init_tracing;
 use clap::Parser;
 use std::env;
-use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    tracing_subscriber::registry()
-        .with(fmt::layer().with_writer(std::io::stderr))
-        .with(
-            EnvFilter::from_default_env()
-                .add_directive(args.log_level.parse().unwrap_or(tracing::Level::INFO).into()),
-        )
-        .init();
+    let _guard = init_tracing(&args.log_level, None, false);
 
     tracing::debug!("Arguments parsed: {:?}", args);
 
