@@ -9,7 +9,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Comprehensive API Mocking
-- **Track Folder:** [./tracks/api_mocking_wiremock_20260331/](./tracks/api_mocking_wiremock_20260331/)
-
----
