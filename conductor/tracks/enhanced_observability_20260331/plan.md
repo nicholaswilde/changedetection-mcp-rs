@@ -13,5 +13,5 @@
 4. [x] **Update CLI Configuration:** (63dfa57)
    - Add `--log-format` and `--log-file` arguments to the CLI to allow users to configure observability at runtime.
 
-5. [ ] **Validation:**
+5. [x] **Validation:** (b3b5766)
    - Verify that logs are correctly formatted and that correlation IDs are consistent across log entries for a single request.
