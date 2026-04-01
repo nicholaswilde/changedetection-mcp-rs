@@ -9,7 +9,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Automated MCP Tool Schema Generation
+## [x] Track: Automated MCP Tool Schema Generation
 - **Track Folder:** [./tracks/mcp_schema_gen_20260331/](./tracks/mcp_schema_gen_20260331/)
 
 ---
