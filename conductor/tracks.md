@@ -9,3 +9,28 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## [ ] Track: Watch Diffs & History
+- **Track Folder:** [./tracks/watch_diffs_history_20260331/](./tracks/watch_diffs_history_20260331/)
+
+---
+
+## [ ] Track: Update Watch
+- **Track Folder:** [./tracks/update_watch_20260331/](./tracks/update_watch_20260331/)
+
+---
+
+## [ ] Track: Search Watches
+- **Track Folder:** [./tracks/search_watches_20260331/](./tracks/search_watches_20260331/)
+
+---
+
+## [ ] Track: Tag Management
+- **Track Folder:** [./tracks/tag_management_20260331/](./tracks/tag_management_20260331/)
+
+---
+
+## [ ] Track: System Info
+- **Track Folder:** [./tracks/system_info_20260331/](./tracks/system_info_20260331/)
+
+---
+
