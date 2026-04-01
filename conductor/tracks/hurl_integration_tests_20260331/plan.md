@@ -8,13 +8,13 @@
    - Update `McpServer` to handle both `stdio` and `HTTP/SSE` transports.
    - Add CLI arguments to choose the transport and port.
 
-3. [ ] **Implement Core Hurl Tests:**
+3. [x] **Implement Core Hurl Tests:** 69746f5
    - Write Hurl scripts for:
      - Listing MCP tools.
      - Calling a sample tool (e.g., `list_watches`).
      - Error handling (e.g., calling a non-existent tool).
 
-4. [ ] **Update Taskfile:**
+4. [x] **Update Taskfile:** 69746f5
    - Add a `test-hurl` task to `Taskfile.yml` to run all Hurl tests.
 
 5. [ ] **CI Integration:**
