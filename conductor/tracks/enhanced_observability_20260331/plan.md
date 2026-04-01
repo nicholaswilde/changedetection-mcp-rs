@@ -4,7 +4,7 @@
    - Add `tracing-appender` for file logging.
    - Add `tracing-serde` for JSON log serialization.
 
-2. [ ] **Enhance Tracing Subscriber:**
+2. [x] **Enhance Tracing Subscriber:** (256b57f)
    - Configure the subscriber to support both human-readable (stdout) and structured (file/JSON) outputs.
 
 3. [ ] **Implement Request Correlation:**
