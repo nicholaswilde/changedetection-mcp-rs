@@ -28,5 +28,6 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Resilient API Communication:** Implement robust retry and caching strategies to ensure reliable interaction with ChangeDetection.io, even under adverse network conditions.
 - **MCP Compliance:** Adhere strictly to the Model Context Protocol for maximum compatibility.
 - **Automated Schema Synchronization:** Use automated tools to ensure that MCP tool definitions and JSON schemas are always in sync with the underlying Rust implementation.
+- **End-to-End Testability:** Maintain a suite of scriptable integration tests to verify the server's behavior from an external consumer's perspective.
 - **Secure API Interaction:** Securely handle ChangeDetection.io API keys and connection settings.
 - **Developer-Centric:** Provide clear tool definitions and informative error messages.
