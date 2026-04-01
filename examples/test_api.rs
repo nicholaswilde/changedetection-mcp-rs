@@ -10,7 +10,7 @@ async fn main() -> anyhow::Result<()> {
     let client = Client::new(base_url, api_key);
 
     println!("Listing watches...");
-    let watches = client.list_watches().await?;
+    let watches = client.list_watches(None).await?;
     println!("Found {} watches.", watches.len());
     for (uuid, watch) in watches {
         let title = watch.title.unwrap_or_default();
