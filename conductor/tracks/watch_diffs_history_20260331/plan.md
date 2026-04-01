@@ -4,7 +4,7 @@
    - Add `get_watch_history(uuid: &str)` to the `Client` in `src/api/mod.rs`.
    - Add `get_watch_diff(uuid: &str, from: &str, to: &str)` to the `Client` in `src/api/mod.rs`.
    
-2. [ ] **API Client Tests:**
+2. [x] **API Client Tests:** (1ca2497)
    - Update `tests/api_client_test.rs` with mock endpoints for these new methods.
 
 3. [ ] **MCP Tool Definitions:**
