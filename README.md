@@ -18,7 +18,8 @@ A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MC
     - `trigger_check`: Trigger a re-check for a specific watch.
 - **Multi-Transport Support:**
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
-- **Robust Configuration:** Supports configuration via environment variables.
+  - **HTTP/JSON-RPC:** Remote transport for testing and external clients.
+- **Robust Configuration:** Supports configuration via CLI arguments and environment variables.
 - **Security & Privacy:**
   - **API Key Authentication:** Connects to ChangeDetection.io using the `x-api-key` header.
 
@@ -39,11 +40,14 @@ The binary will be available at `target/release/changedetection-mcp-rs`.
 
 ### ⌨️ Command Line Interface
 
-The server is configured via environment variables.
+The server is configured via CLI arguments or environment variables.
 
 ```bash
-# Run the MCP server
-CHANGEDETECTION_API_KEY=your_key CHANGEDETECTION_BASE_URL=http://localhost:5000 ./target/release/changedetection-mcp-rs
+# Run via Stdio (default)
+./target/release/changedetection-mcp-rs --api-key your_key
+
+# Run via HTTP
+./target/release/changedetection-mcp-rs --transport http --port 3000 --api-key your_key
 ```
 
 ### 🤖 Configuration Example (Claude Desktop)
@@ -71,6 +75,9 @@ The project uses [go-task](https://taskfile.dev/) for development tasks.
 ```bash
 # Run unit tests
 task test
+
+# Run Hurl integration tests (requires running server)
+task test:hurl
 
 # Run MCP Inspector (requires npx)
 task inspector
