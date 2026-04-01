@@ -50,6 +50,22 @@ pub struct TriggerCheckArgs {
     pub uuid: String,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct GetWatchHistoryArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct GetWatchDiffArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// The timestamp of the source snapshot
+    pub from_timestamp: String,
+    /// The timestamp of the target snapshot
+    pub to_timestamp: String,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -290,6 +306,28 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "get_watch_history" => {
+                    let args: GetWatchHistoryArgs = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let result = self
+                        .client
+                        .get_watch_history(&args.uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "get_watch_diff" => {
+                    let args: GetWatchDiffArgs = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let result = self
+                        .client
+                        .get_watch_diff(&args.uuid, &args.from_timestamp, &args.to_timestamp)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
@@ -320,6 +358,18 @@ impl ServerHandler for McpServer {
                             name: "trigger_check".to_string(),
                             description: "Trigger a re-check for a specific watch".to_string(),
                             input_schema: Some(get_schema::<TriggerCheckArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_watch_history".to_string(),
+                            description: "Get the history of snapshots for a specific watch".to_string(),
+                            input_schema: Some(get_schema::<GetWatchHistoryArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_watch_diff".to_string(),
+                            description: "Get the difference between two snapshots of a watch".to_string(),
+                            input_schema: Some(get_schema::<GetWatchDiffArgs>()),
                             annotations: None,
                         },
                     ];

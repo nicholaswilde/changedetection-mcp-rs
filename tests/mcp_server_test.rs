@@ -60,10 +60,12 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
     
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 5);
+    assert_eq!(tools.len(), 7);
     
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"list_watches"));
+    assert!(tool_names.contains(&"get_watch_history"));
+    assert!(tool_names.contains(&"get_watch_diff"));
 }
 
 #[tokio::test]
