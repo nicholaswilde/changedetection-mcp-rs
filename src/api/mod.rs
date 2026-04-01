@@ -65,7 +65,7 @@ impl Client {
         if let Some(tag) = tag {
             url.push_str(&format!("?tag={}", tag));
         }
-        let response = self.http_client.get(&url).send().await?;
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
         let watches = response.json::<HashMap<String, Watch>>().await?;
         Ok(watches)
     }
@@ -103,7 +103,7 @@ impl Client {
 
     pub async fn trigger_check(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/watch/{}/recheck", self.base_url, uuid);
-        let response = self.http_client.get(&url).send().await?;
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }
