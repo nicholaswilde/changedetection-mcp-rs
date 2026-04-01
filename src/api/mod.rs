@@ -113,4 +113,21 @@ impl Client {
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }
+
+    pub async fn get_watch_history(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/watch/{}/history", self.base_url, uuid);
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let history = response.json::<HashMap<String, String>>().await?;
+        Ok(history)
+    }
+
+    pub async fn get_watch_diff(&self, uuid: &str, from: &str, to: &str) -> Result<String, ApiError> {
+        let url = format!(
+            "{}/api/v1/watch/{}/difference/{}/{}",
+            self.base_url, uuid, from, to
+        );
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let diff = response.text().await?;
+        Ok(diff)
+    }
 }
