@@ -12,5 +12,5 @@
 4. [x] **Handle Malformed Responses:** (e7dae23)
    - Add tests where the mock server returns malformed or unexpected JSON to ensure the client fails gracefully.
 
-5. [ ] **Verification:**
+5. [x] **Verification:**
    - Run the updated test suite and ensure all edge-case scenarios are covered and passing.
