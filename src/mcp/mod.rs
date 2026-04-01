@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::io::{stdin, stdout, AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 use tokio::sync::mpsc;
+use tracing::Instrument;
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct ListWatchesArgs {
@@ -229,10 +230,13 @@ impl ServerHandler for McpServer {
         method: &str,
         params: Option<serde_json::Value>,
     ) -> Result<serde_json::Value, Error> {
-        let params_tokens = params.as_ref().map_or(0, |p| p.to_string().len());
+        let request_id = uuid::Uuid::new_v4().to_string();
+        let span = tracing::info_span!("mcp_request", %method, %request_id);
         
-        let result = async {
-            match method {
+        async move {
+            let params_tokens = params.as_ref().map_or(0, |p| p.to_string().len());
+            
+            let result = match method {
                 "list_watches" => {
                     let args: ListWatchesArgs = serde_json::from_value(params.unwrap_or(serde_json::json!({})))?;
                     let watches = self
@@ -325,16 +329,16 @@ impl ServerHandler for McpServer {
                     ErrorCode::MethodNotFound,
                     format!("Method not found: {}", method),
                 )),
-            }
-        }.await;
+            };
 
-        let result_tokens = result.as_ref().map_or(0, |r| r.to_string().len());
-        tracing::info!(
-            "Token usage: (params: {}, result: {})",
-            params_tokens,
-            result_tokens
-        );
+            let result_tokens = result.as_ref().map_or(0, |r| r.to_string().len());
+            tracing::info!(
+                "Token usage: (params: {}, result: {})",
+                params_tokens,
+                result_tokens
+            );
 
-        result
+            result
+        }.instrument(span).await
     }
 }
