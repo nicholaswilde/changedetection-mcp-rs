@@ -32,6 +32,8 @@ http-cache-reqwest = "1.0.0-alpha.5"
 schemars = "1.2.1"
 axum = "0.8.8"
 tower-http = { version = "0.6.8", features = ["cors", "trace"] }
+tracing-appender = "0.2.3"
+tracing-serde = "0.2.0"
 
 [dev-dependencies]
 wiremock = "0.6.0"
