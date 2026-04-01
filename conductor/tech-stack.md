@@ -15,6 +15,7 @@
 ## Configuration Management
 - Formats: Optimized support for **TOML** (YAML/JSON disabled for size).
 - Hierarchy: Configuration via CLI arguments, environment variables, and config files (e.g., `config.toml`).
+- Observability: Enhanced logging with `--log-format` (text, json) and `--log-file`.
 - Multi-Instance Support: Built-in logic for managing multiple ChangeDetection.io instances.
 
 ## Security & Secrets
@@ -55,3 +56,5 @@
 - **uuid**: Unique identifier generation.
 - **url**: URL parsing and manipulation.
 - **async-recursion**: Procedural macro for recursive async functions.
+- **tracing-appender**: Non-blocking file logging and rolling appenders (v0.2.4).
+- **tracing-serde**: JSON log serialization (v0.2.0).
