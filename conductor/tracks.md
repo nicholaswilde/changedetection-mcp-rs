@@ -9,11 +9,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Scriptable API Integration Testing
-- **Track Folder:** [./tracks/hurl_integration_tests_20260331/](./tracks/hurl_integration_tests_20260331/)
-
----
-
 ## [ ] Track: Enhanced Observability and Tracing
 - **Track Folder:** [./tracks/enhanced_observability_20260331/](./tracks/enhanced_observability_20260331/)
 
