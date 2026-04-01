@@ -112,3 +112,14 @@ tasks:
     cmds:
       - cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
       - cargo llvm-cov --workspace --all-features --html
+
+  test:hurl:
+    desc: Run Hurl integration tests (requires running server)
+    cmds:
+      - |
+        if command -v hurl >/dev/null 2>&1; then
+          hurl --test tests/hurl/*.hurl
+        else
+          echo "Hurl not found. Running tests via curl/bash fallback..."
+          bash tests/hurl/run_tests.sh
+        fi
