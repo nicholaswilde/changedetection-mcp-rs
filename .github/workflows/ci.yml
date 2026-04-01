@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        
+      - name: Build
+        run: task build:debug
+        
+      - name: Run Unit Tests
+        run: task test
+        
+      - name: Run Hurl Tests
+        run: |
+          CHANGEDETECTION_API_KEY=dummy ./target/debug/changedetection-mcp-rs --transport http --port 3000 &
+          sleep 2
+          task test:hurl
+          kill $!
