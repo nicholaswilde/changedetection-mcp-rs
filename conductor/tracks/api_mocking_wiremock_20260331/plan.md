@@ -3,7 +3,7 @@
 1. [x] **Centralize Mocking Helpers:** (dfbadf7)
    - Create a common module in `tests/` for shared `wiremock` setup and helper functions to reduce code duplication.
 
-2. [ ] **Test Edge Cases (HTTP Errors):**
+2. [x] **Test Edge Cases (HTTP Errors):** (ce88d13)
    - Add tests for all possible HTTP error codes returned by the API (e.g., 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error).
 
 3. [ ] **Simulate Network Conditions:**
