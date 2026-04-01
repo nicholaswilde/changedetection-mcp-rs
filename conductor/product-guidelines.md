@@ -9,6 +9,7 @@
 
 ## 2. Model Context Protocol (MCP) Standards
 * **Token Optimization**: Every tool and response MUST be designed to minimize token usage for the LLM. Prefer high-level, functional abstractions over granular API data.
+  - Example: The `list_watches` tool should allow filtering by tag to reduce the size of the response.
 * **High-Signal Tools**: Each tool should provide a concise, high-signal output. Avoid returning massive JSON blobs unless specifically requested.
 * **Clear Tool Descriptions**: Use descriptive tool names and comprehensive "tool definition" descriptions to help LLMs understand when and how to use each tool.
 * **Parameter Validation**: Rigorously validate all tool inputs before attempting any external API calls.
