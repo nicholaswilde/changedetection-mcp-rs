@@ -24,6 +24,7 @@ pub struct Watch {
     pub title: Option<String>,
 }
 
+#[derive(Clone)]
 pub struct Client {
     base_url: String,
     http_client: ClientWithMiddleware,

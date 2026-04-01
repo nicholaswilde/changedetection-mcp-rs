@@ -1,12 +1,11 @@
-use changedetection_mcp_rs::api::Client;
+mod common;
+
+use common::MockApp;
 use serde_json::json;
-use wiremock::matchers::{method, path};
-use wiremock::{Mock, MockServer, ResponseTemplate};
 
 #[tokio::test]
 async fn test_list_watches() {
-    let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let app = MockApp::new().await;
 
     let response_body = json!({
         "watch_id_1": {
@@ -15,20 +14,15 @@ async fn test_list_watches() {
         }
     });
 
-    Mock::given(method("GET"))
-        .and(path("/api/v1/watch"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
-        .mount(&mock_server)
-        .await;
+    app.mock_get("/api/v1/watch", 200, Some(response_body)).await;
 
-    let watches = client.list_watches(None).await.unwrap();
+    let watches = app.client.list_watches(None).await.unwrap();
     assert_eq!(watches.len(), 1);
 }
 
 #[tokio::test]
 async fn test_get_watch_details() {
-    let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let app = MockApp::new().await;
 
     let uuid = "watch_id_1";
     let response_body = json!({
@@ -36,33 +30,24 @@ async fn test_get_watch_details() {
         "title": "Example"
     });
 
-    Mock::given(method("GET"))
-        .and(path(format!("/api/v1/watch/{}", uuid)))
-        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
-        .mount(&mock_server)
-        .await;
+    app.mock_get(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
 
-    let watch = client.get_watch_details(uuid).await.unwrap();
+    let watch = app.client.get_watch_details(uuid).await.unwrap();
     assert_eq!(watch.url, "https://example.com");
 }
 
 #[tokio::test]
 async fn test_create_watch() {
-    let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let app = MockApp::new().await;
 
     let response_body = json!({
         "status": "success",
         "uuid": "watch_id_1"
     });
 
-    Mock::given(method("POST"))
-        .and(path("/api/v1/watch"))
-        .respond_with(ResponseTemplate::new(201).set_body_json(response_body))
-        .mount(&mock_server)
-        .await;
+    app.mock_post("/api/v1/watch", 201, Some(response_body)).await;
 
-    let result = client
+    let result = app.client
         .create_watch("https://example.com", None)
         .await
         .unwrap();
@@ -72,40 +57,30 @@ async fn test_create_watch() {
 
 #[tokio::test]
 async fn test_delete_watch() {
-    let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let app = MockApp::new().await;
 
     let uuid = "watch_id_1";
     let response_body = json!({
         "status": "success"
     });
 
-    Mock::given(method("DELETE"))
-        .and(path(format!("/api/v1/watch/{}", uuid)))
-        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
-        .mount(&mock_server)
-        .await;
+    app.mock_delete(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
 
-    let result = client.delete_watch(uuid).await.unwrap();
+    let result = app.client.delete_watch(uuid).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
 #[tokio::test]
 async fn test_trigger_check() {
-    let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    let app = MockApp::new().await;
 
     let uuid = "watch_id_1";
     let response_body = json!({
         "status": "success"
     });
 
-    Mock::given(method("GET"))
-        .and(path(format!("/api/v1/watch/{}/recheck", uuid)))
-        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
-        .mount(&mock_server)
-        .await;
+    app.mock_get(&format!("/api/v1/watch/{}/recheck", uuid), 200, Some(response_body)).await;
 
-    let result = client.trigger_check(uuid).await.unwrap();
+    let result = app.client.trigger_check(uuid).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
