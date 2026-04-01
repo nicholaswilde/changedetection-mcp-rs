@@ -37,6 +37,7 @@
 - **reqwest-middleware**: Middleware support for reqwest (v0.5.1).
 - **reqwest-retry**: Retry strategy for reqwest (v0.9.1).
 - **http-cache-reqwest**: HTTP caching for reqwest (v1.0.0-alpha.5).
+- **schemars**: Automated JSON schema generation from Rust types (v1.2.1).
 - **serde**, **serde_json**, **toml**: For configuration and API parsing.
 - **clap**: For robust CLI argument parsing.
 - **tracing** / **log**: For configurable logging levels.
