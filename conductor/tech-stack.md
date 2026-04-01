@@ -9,6 +9,7 @@
 - Task Runner: `go-task` (via `Taskfile.yml`) for build, test, and deployment automation.
 - Cross-Compilation: `cross` for building `amd64`, `arm64`.
 - Version Control: `git` for configuration backup and management.
+- API Mocking: `wiremock` for simulating various upstream API behaviors and edge cases.
 - Package Manager: `cargo` (Rust standard).
 - MCP Testing: `mcp-inspector` for verifying MCP tool definitions and responses.
 
