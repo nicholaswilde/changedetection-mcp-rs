@@ -29,6 +29,9 @@ mod tests {
 
     #[test]
     fn test_parse_args_default() {
+        std::env::remove_var("CHANGEDETECTION_API_KEY");
+        std::env::remove_var("CHANGEDETECTION_CONFIG");
+        std::env::remove_var("LOG_LEVEL");
         let args = Args::try_parse_from(["changedetection-mcp-rs"]).unwrap();
         assert_eq!(args.log_level, "info");
         assert_eq!(args.config, None);

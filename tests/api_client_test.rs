@@ -21,7 +21,7 @@ async fn test_list_watches() {
         .mount(&mock_server)
         .await;
 
-    let watches = client.list_watches().await.unwrap();
+    let watches = client.list_watches(None).await.unwrap();
     assert_eq!(watches.len(), 1);
 }
 

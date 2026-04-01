@@ -1,4 +1,7 @@
+use http_cache_reqwest::{CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions};
 use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
@@ -7,6 +10,8 @@ use thiserror::Error;
 pub enum ApiError {
     #[error("HTTP error: {0}")]
     Http(#[from] reqwest::Error),
+    #[error("Middleware error: {0}")]
+    Middleware(#[from] reqwest_middleware::Error),
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
     #[error("Invalid URL: {0}")]
@@ -21,7 +26,7 @@ pub struct Watch {
 
 pub struct Client {
     base_url: String,
-    http_client: reqwest::Client,
+    http_client: ClientWithMiddleware,
 }
 
 impl Client {
@@ -31,10 +36,22 @@ impl Client {
             headers.insert("x-api-key", val);
         }
 
-        let http_client = reqwest::Client::builder()
+        let reqwest_client = reqwest::Client::builder()
             .default_headers(headers)
             .build()
             .expect("Failed to build HTTP client");
+
+        // Retry strategy: exponential backoff with 3 retries
+        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+
+        let http_client = ClientBuilder::new(reqwest_client)
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .with(Cache(HttpCache {
+                mode: CacheMode::Default,
+                manager: CACacheManager::new("/tmp/changedetection-mcp-cache".into(), true),
+                options: HttpCacheOptions::default(),
+            }))
+            .build();
 
         Self {
             base_url: base_url.trim_end_matches('/').to_string(),

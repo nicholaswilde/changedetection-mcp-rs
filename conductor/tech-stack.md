@@ -33,7 +33,10 @@
 ## Principal Rust Dependencies (Inferred)
 - **tokio**: Asynchronous runtime.
 - **tokio-retry**: Exponential backoff and retry strategy for async tasks.
-- **reqwest**: For communicating with the ChangeDetection.io REST API.
+- **reqwest**: For communicating with the ChangeDetection.io REST API (v0.13.2).
+- **reqwest-middleware**: Middleware support for reqwest (v0.5.1).
+- **reqwest-retry**: Retry strategy for reqwest (v0.9.1).
+- **http-cache-reqwest**: HTTP caching for reqwest (v1.0.0-alpha.5).
 - **serde**, **serde_json**, **toml**: For configuration and API parsing.
 - **clap**: For robust CLI argument parsing.
 - **tracing** / **log**: For configurable logging levels.
