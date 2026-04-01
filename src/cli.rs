@@ -1,4 +1,10 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
+
+#[derive(ValueEnum, Clone, Debug, PartialEq)]
+pub enum Transport {
+    Stdio,
+    Http,
+}
 
 /// A Model Context Protocol (MCP) server for ChangeDetection.io
 #[derive(Parser, Debug)]
@@ -15,6 +21,18 @@ pub struct Args {
     /// ChangeDetection.io API Key
     #[arg(short = 'k', long, value_name = "KEY", env = "CHANGEDETECTION_API_KEY")]
     pub api_key: Option<String>,
+
+    /// Transport to use (stdio, http)
+    #[arg(short, long, value_enum, default_value = "stdio", env = "MCP_TRANSPORT")]
+    pub transport: Transport,
+
+    /// HTTP host
+    #[arg(long, default_value = "127.0.0.1", env = "MCP_HOST")]
+    pub host: String,
+
+    /// HTTP port
+    #[arg(short, long, default_value = "3000", env = "MCP_PORT")]
+    pub port: u16,
 }
 
 impl Args {
@@ -32,10 +50,12 @@ mod tests {
         std::env::remove_var("CHANGEDETECTION_API_KEY");
         std::env::remove_var("CHANGEDETECTION_CONFIG");
         std::env::remove_var("LOG_LEVEL");
+        std::env::remove_var("MCP_TRANSPORT");
         let args = Args::try_parse_from(["changedetection-mcp-rs"]).unwrap();
         assert_eq!(args.log_level, "info");
         assert_eq!(args.config, None);
         assert_eq!(args.api_key, None);
+        assert_eq!(args.transport, Transport::Stdio);
     }
 
     #[test]
@@ -48,10 +68,19 @@ mod tests {
             "test.toml",
             "--api-key",
             "test-key",
+            "--transport",
+            "http",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8080",
         ])
         .unwrap();
         assert_eq!(args.log_level, "debug");
         assert_eq!(args.config, Some("test.toml".to_string()));
         assert_eq!(args.api_key, Some("test-key".to_string()));
+        assert_eq!(args.transport, Transport::Http);
+        assert_eq!(args.host, "0.0.0.0");
+        assert_eq!(args.port, 8080);
     }
 }

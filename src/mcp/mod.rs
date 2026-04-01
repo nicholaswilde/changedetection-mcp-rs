@@ -1,11 +1,18 @@
 use crate::api::Client;
+use crate::cli::Transport;
 use async_trait::async_trait;
+use axum::{
+    extract::{State},
+    http::StatusCode,
+    routing::post,
+    Json, Router,
+};
 use mcp_sdk_rs::error::{Error, ErrorCode};
 use mcp_sdk_rs::server::{Server, ServerHandler};
 use mcp_sdk_rs::transport::stdio::StdioTransport;
 use mcp_sdk_rs::types::{ClientCapabilities, Implementation, ServerCapabilities, Tool, ToolSchema};
 use schemars::{schema_for, JsonSchema};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::io::{stdin, stdout, AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 use tokio::sync::mpsc;
@@ -69,8 +76,15 @@ impl McpServer {
         }
     }
 
-    pub async fn run(self) -> anyhow::Result<()> {
-        tracing::info!("Starting MCP server...");
+    pub async fn run(self, transport_type: Transport, host: &str, port: u16) -> anyhow::Result<()> {
+        match transport_type {
+            Transport::Stdio => self.run_stdio().await,
+            Transport::Http => self.run_http(host, port).await,
+        }
+    }
+
+    async fn run_stdio(self) -> anyhow::Result<()> {
+        tracing::info!("Starting MCP server via stdio...");
         let (stdin_tx, stdin_rx) = mpsc::channel::<String>(32);
         let (stdout_tx, mut stdout_rx) = mpsc::channel::<String>(32);
 
@@ -88,11 +102,8 @@ impl McpServer {
                 }
                 let trimmed = line.trim();
                 if !trimmed.is_empty() {
-                    // mcp-sdk-rs StdioTransport::receive unwraps serde_json::from_str,
-                    // so we MUST ensure it is valid JSON before sending it to the channel.
                     if let Ok(val) = serde_json::from_str::<serde_json::Value>(trimmed) {
                         let mut msg = trimmed.to_string();
-                        // mcp-sdk-rs expects "initialized" notification, but protocol says "notifications/initialized"
                         if val.get("method").and_then(|v| v.as_str())
                             == Some("notifications/initialized")
                         {
@@ -125,6 +136,73 @@ impl McpServer {
         server.start().await?;
         tracing::info!("MCP server stopped.");
         Ok(())
+    }
+
+    async fn run_http(self, host: &str, port: u16) -> anyhow::Result<()> {
+        tracing::info!("Starting MCP server via HTTP on {}:{}...", host, port);
+        
+        let state = Arc::new(self);
+        
+        let app = Router::new()
+            .route("/", post(http_rpc_handler))
+            .layer(tower_http::trace::TraceLayer::new_for_http())
+            .with_state(state);
+
+        let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port)).await?;
+        axum::serve(listener, app).await?;
+        
+        Ok(())
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+struct RpcRequest {
+    jsonrpc: String,
+    method: String,
+    params: Option<serde_json::Value>,
+    id: Option<serde_json::Value>,
+}
+
+#[derive(Serialize)]
+struct RpcResponse {
+    jsonrpc: String,
+    result: Option<serde_json::Value>,
+    error: Option<RpcError>,
+    id: Option<serde_json::Value>,
+}
+
+#[derive(Serialize)]
+struct RpcError {
+    code: i32,
+    message: String,
+}
+
+async fn http_rpc_handler(
+    State(server): State<Arc<McpServer>>,
+    Json(payload): Json<RpcRequest>,
+) -> (StatusCode, Json<RpcResponse>) {
+    match server.handle_method(&payload.method, payload.params).await {
+        Ok(result) => (
+            StatusCode::OK,
+            Json(RpcResponse {
+                jsonrpc: "2.0".to_string(),
+                result: Some(result),
+                error: None,
+                id: payload.id,
+            }),
+        ),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(RpcResponse {
+                jsonrpc: "2.0".to_string(),
+                result: None,
+                error: Some(RpcError {
+                    code: -32000, // General internal error
+                    message: e.to_string(),
+                }),
+                id: payload.id,
+            }),
+        ),
     }
 }
 

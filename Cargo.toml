@@ -30,6 +30,8 @@ reqwest-retry = { version = "0.9.1", features = ["tracing"] }
 reqwest-conditional-middleware = "0.4.0"
 http-cache-reqwest = "1.0.0-alpha.5"
 schemars = "1.2.1"
+axum = "0.8.8"
+tower-http = { version = "0.6.8", features = ["cors", "trace"] }
 
 [dev-dependencies]
 wiremock = "0.6.0"

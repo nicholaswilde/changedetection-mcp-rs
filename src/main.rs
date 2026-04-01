@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let client = Client::new(base_url, api_key);
     let server = McpServer::new(client);
 
-    server.run().await?;
+    server.run(args.transport, &args.host, args.port).await?;
 
     Ok(())
 }
