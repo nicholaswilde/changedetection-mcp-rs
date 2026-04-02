@@ -5,11 +5,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 
-## [x] Track: System Info
-- **Track Folder:** [./tracks/system_info_20260331/](./tracks/system_info_20260331/)
-
----
-
 ## [ ] Track: Advanced System Discovery
 - **Track Folder:** [./tracks/advanced_system_discovery_20260401/](./tracks/advanced_system_discovery_20260401/)
 
