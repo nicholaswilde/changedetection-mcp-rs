@@ -4,6 +4,7 @@
 - [Product Definition](./product.md)
 - [Product Guidelines](./product-guidelines.md)
 - [Tech Stack](./tech-stack.md)
+- [API Reference](./api-reference.md)
 
 ## Workflow
 - [Workflow](./workflow.md)
