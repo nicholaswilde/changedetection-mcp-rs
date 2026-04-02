@@ -1,9 +1,9 @@
 # Implementation Plan
 
-1. [ ] **API Client Extension:**
+1. [x] **API Client Extension:** (9216d32)
    - Add `update_watch(uuid: &str, payload: serde_json::Value)` to the `Client` in `src/api/mod.rs`.
    
-2. [ ] **API Client Tests:**
+2. [x] **API Client Tests:** (9216d32)
    - Write tests in `tests/api_client_test.rs` using `wiremock` to verify the `PUT` request.
 
 3. [ ] **MCP Tool Definitions:**
