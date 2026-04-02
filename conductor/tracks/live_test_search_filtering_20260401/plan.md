@@ -6,7 +6,7 @@
    - Implement `test_live_search_filtering`.
    - Test `search_watches` with query for existing and non-existing titles.
    - Test `list_watches` with tag filtering.
-2. **Execute and Verify**:
+2. **[x] Execute and Verify**: 35a221e
    - Run `task test:live`.
    - Ensure the output shows expected matches.
 3. **Task Completion**:
