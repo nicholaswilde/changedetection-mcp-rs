@@ -124,3 +124,64 @@ async fn test_live_watch_lifecycle() {
     mcp.handle_method("delete_watch", Some(delete_params)).await.expect("Failed to delete watch");
     println!("Deleted watch: {}", uuid);
 }
+
+#[tokio::test]
+async fn test_live_search_filtering() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Setup: Create a watch with a unique tag
+    let unique_tag = format!("search-test-{}", Uuid::new_v4());
+    let watch_url = "https://example.com/search-test";
+    let watch_title = format!("Search Test Watch {}", Uuid::new_v4());
+    
+    let create_params = serde_json::json!({
+        "url": watch_url,
+        "tag": unique_tag
+    });
+    let create_result = mcp.handle_method("create_watch", Some(create_params)).await.expect("Failed to create watch");
+    let uuid = create_result.get("uuid").expect("No uuid in create result").as_str().expect("uuid not a string").to_string();
+    
+    // Update title so we can search for it (create_watch doesn't support title in current impl)
+    let update_params = serde_json::json!({
+        "uuid": uuid,
+        "title": watch_title
+    });
+    mcp.handle_method("update_watch", Some(update_params)).await.expect("Failed to update watch title");
+
+    // 2. Test search_watches
+    let search_params = serde_json::json!({ "query": watch_title });
+    let search_results = mcp.handle_method("search_watches", Some(search_params)).await.expect("Failed to search watches");
+    assert!(search_results.is_object());
+    assert!(search_results.as_object().unwrap().contains_key(&uuid), "Search result should contain the created watch");
+
+    // 3. Test list_watches with tag filtering
+    let list_params = serde_json::json!({ "tag": unique_tag });
+    let list_results = mcp.handle_method("list_watches", Some(list_params)).await.expect("Failed to list watches with tag");
+    assert!(list_results.is_object());
+    assert_eq!(list_results.as_object().unwrap().len(), 1, "Should find exactly one watch with the unique tag");
+    assert!(list_results.as_object().unwrap().contains_key(&uuid));
+
+    // 4. Test search with no results
+    let search_params_empty = serde_json::json!({ "query": "NonExistentWatchTitle123456789" });
+    let search_results_empty = mcp.handle_method("search_watches", Some(search_params_empty)).await.expect("Failed to search watches");
+    assert!(search_results_empty.is_object());
+    assert_eq!(search_results_empty.as_object().unwrap().len(), 0);
+
+    // 5. Cleanup
+    let delete_params = serde_json::json!({ "uuid": uuid });
+    mcp.handle_method("delete_watch", Some(delete_params)).await.expect("Failed to delete watch");
+    
+    // Cleanup tag (optional but good)
+    let tags = mcp.handle_method("list_tags", None).await.expect("Failed to list tags");
+    if let Some(tag_uuid) = tags.as_object().and_then(|obj| {
+        obj.iter().find(|(_, v)| v.get("title").and_then(|t| t.as_str()) == Some(&unique_tag)).map(|(k, _)| k.clone())
+    }) {
+        let delete_tag_params = serde_json::json!({ "uuid": tag_uuid });
+        let _ = mcp.handle_method("delete_tag", Some(delete_tag_params)).await;
+    }
+}
