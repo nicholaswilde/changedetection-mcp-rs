@@ -185,3 +185,63 @@ async fn test_live_search_filtering() {
         let _ = mcp.handle_method("delete_tag", Some(delete_tag_params)).await;
     }
 }
+
+#[tokio::test]
+async fn test_live_history_diffs() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Find a watch with at least 2 history points
+    let watches_result = mcp.handle_method("list_watches", None).await.expect("Failed to list watches");
+    let watches = watches_result.as_object().expect("list_watches should return an object");
+    
+    let mut target_uuid = None;
+    for (uuid, _) in watches {
+        let history_params = serde_json::json!({ "uuid": uuid });
+        if let Ok(history) = mcp.handle_method("get_watch_history", Some(history_params)).await {
+            if history.as_object().map(|obj| obj.len() >= 2).unwrap_or(false) {
+                target_uuid = Some(uuid.clone());
+                break;
+            }
+        }
+    }
+
+    let uuid = target_uuid.expect("Could not find a watch with at least 2 history points for live test");
+    println!("Testing history/diff on watch: {}", uuid);
+
+    // 2. Get history
+    let history_params = serde_json::json!({ "uuid": uuid });
+    let history = mcp.handle_method("get_watch_history", Some(history_params)).await.expect("Failed to get history");
+    assert!(history.is_object());
+    assert!(history.as_object().unwrap().len() >= 2);
+    println!("History points: {}", history.as_object().unwrap().len());
+
+    // 3. Get diff using "latest" and "previous"
+    let diff_params = serde_json::json!({
+        "uuid": uuid,
+        "from_timestamp": "previous",
+        "to_timestamp": "latest"
+    });
+    let diff = mcp.handle_method("get_watch_diff", Some(diff_params)).await.expect("Failed to get diff");
+    assert!(diff.is_string());
+    println!("Diff length (default): {}", diff.as_str().unwrap().len());
+
+    // 4. Get diff with explicit timestamps from history
+    let mut timestamps: Vec<String> = history.as_object().unwrap().keys().cloned().collect();
+    timestamps.sort();
+    let t1 = &timestamps[timestamps.len() - 2];
+    let t2 = &timestamps[timestamps.len() - 1];
+    
+    let diff_params_explicit = serde_json::json!({
+        "uuid": uuid,
+        "from_timestamp": t1,
+        "to_timestamp": t2
+    });
+    let diff_explicit = mcp.handle_method("get_watch_diff", Some(diff_params_explicit)).await.expect("Failed to get explicit diff");
+    assert!(diff_explicit.is_string());
+    assert_eq!(diff.as_str().unwrap().len(), diff_explicit.as_str().unwrap().len());
+}
