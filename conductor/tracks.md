@@ -10,11 +10,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Live Test: History & Diffs
-- **Track Folder:** [./tracks/live_test_history_diffs_20260401/](./tracks/live_test_history_diffs_20260401/)
-
----
-
 ## [ ] Track: Advanced System Discovery
 - **Track Folder:** [./tracks/advanced_system_discovery_20260401/](./tracks/advanced_system_discovery_20260401/)
 
