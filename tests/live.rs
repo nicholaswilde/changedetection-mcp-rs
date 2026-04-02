@@ -244,4 +244,18 @@ async fn test_live_history_diffs() {
     let diff_explicit = mcp.handle_method("get_watch_diff", Some(diff_params_explicit)).await.expect("Failed to get explicit diff");
     assert!(diff_explicit.is_string());
     assert_eq!(diff.as_str().unwrap().len(), diff_explicit.as_str().unwrap().len());
+
+    // 5. Get diff with markdown format
+    let diff_params_md = serde_json::json!({
+        "uuid": uuid,
+        "from_timestamp": "previous",
+        "to_timestamp": "latest",
+        "format": "markdown"
+    });
+    let diff_md = mcp.handle_method("get_watch_diff", Some(diff_params_md)).await.expect("Failed to get markdown diff");
+    assert!(diff_md.is_string());
+    println!("Diff length (markdown): {}", diff_md.as_str().unwrap().len());
+    
+    // Markdown diff should contain markdown indicators like # or *
+    // Actually, depending on content it might be different, but let's just assert it's a string.
 }

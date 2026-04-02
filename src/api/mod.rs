@@ -235,11 +235,15 @@ impl Client {
         uuid: &str,
         from: &str,
         to: &str,
+        format_type: Option<&str>,
     ) -> Result<String, ApiError> {
-        let url = format!(
+        let mut url = format!(
             "{}/api/v1/watch/{}/difference/{}/{}",
             self.base_url, uuid, from, to
         );
+        if let Some(fmt) = format_type {
+            url.push_str(&format!("?format={}", fmt));
+        }
         let response = self
             .http_client
             .get(&url)

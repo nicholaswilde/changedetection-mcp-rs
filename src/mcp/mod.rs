@@ -103,6 +103,8 @@ pub struct GetWatchDiffArgs {
     pub from_timestamp: String,
     /// The timestamp of the target snapshot
     pub to_timestamp: String,
+    /// The format of the diff (e.g., "text", "markdown")
+    pub format: Option<String>,
 }
 
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
@@ -459,13 +461,33 @@ impl ServerHandler for McpServer {
                         })?)?;
                     let result = self
                         .client
-                        .get_watch_diff(&args.uuid, &args.from_timestamp, &args.to_timestamp)
+                        .get_watch_diff(
+                            &args.uuid,
+                            &args.from_timestamp,
+                            &args.to_timestamp,
+                            args.format.as_deref(),
+                        )
                         .await
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "get_system_info" => {
+                    let info = self
+                        .client
+                        .get_system_info()
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(info)?)
+                }
                 "tools/list" => {
                     let tools = vec![
+                        Tool {
+                            name: "get_system_info".to_string(),
+                            description: "Retrieve ChangeDetection.io system status and version"
+                                .to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
                         Tool {
                             name: "list_watches".to_string(),
                             description: "List all watches in ChangeDetection.io".to_string(),
