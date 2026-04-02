@@ -1,9 +1,9 @@
 # Implementation Plan
 
-1. [ ] **API Client Extension:**
+1. [x] **API Client Extension:** (0a683b4)
    - Add `get_system_info()` to the `Client` in `src/api/mod.rs`.
 
-2. [ ] **API Client Tests:**
+2. [x] **API Client Tests:** (0a683b4)
    - Write tests in `tests/api_client_test.rs` using `wiremock`.
 
 3. [ ] **MCP Tool Definitions:**
