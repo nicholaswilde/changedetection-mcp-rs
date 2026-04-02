@@ -18,6 +18,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 ## Key Features (Draft)
 - **List Watches:** Retrieve a list of all current watches from ChangeDetection.io.
 - **Search Watches:** Efficiently find specific watches by URL or title using search queries, optimizing token usage.
+- **Tag Management:** Complete CRUD operations for tags, enabling organized watch groups.
 - **Get Watch Details:** Fetch detailed information and the latest changes for a specific watch. Filter watches by tag.
 - **Create/Update Watch:** Programmatically add new URLs to track or modify existing watch configurations.
 - **Delete Watch:** Remove watches that are no longer needed.
