@@ -8,8 +8,8 @@ This plan follows the project's TDD-based workflow.
 3. [x] Verify tests pass in `tests/api_snapshot_content_test.rs`. [4dad0e7]
 
 ## Phase 2: MCP Tool Integration
-4. [ ] Add `GetSnapshotContentArgs` struct to `src/mcp/mod.rs`. [ ]
-5. [ ] Add `get_snapshot_content` to the `handle_method` match block in `src/mcp/mod.rs`. [ ]
-6. [ ] Add `get_snapshot_content` to the `tools/list` response in `src/mcp/mod.rs`. [ ]
-7. [ ] Create integration tests in `tests/mcp_snapshot_content_test.rs` ensuring the tool is exposed and works. [ ]
-8. [ ] Verify all tests pass. [ ]
+4. [x] Add `GetSnapshotContentArgs` struct to `src/mcp/mod.rs`. [47b60bf]
+5. [x] Add `get_snapshot_content` to the `handle_method` match block in `src/mcp/mod.rs`. [47b60bf]
+6. [x] Add `get_snapshot_content` to the `tools/list` response in `src/mcp/mod.rs`. [47b60bf]
+7. [x] Create integration tests in `tests/mcp_snapshot_content_test.rs` ensuring the tool is exposed and works. [47b60bf]
+8. [x] Verify all tests pass. [47b60bf]
