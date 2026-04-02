@@ -22,6 +22,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Advanced System Discovery:** Retrieve the full OpenAPI specification to discover all available fields and plugin-added functionality.
 - **Tag Management:** Complete CRUD operations for tags, enabling organized watch groups.
 - **Get Watch Details:** Fetch detailed information and the latest changes for a specific watch. Filter watches by tag.
+- **Notification Management:** Complete CRUD operations for global notification endpoints (Apprise-compatible).
 - **Create/Update Watch:** Programmatically add new URLs to track or modify existing watch configurations.
 - **Delete Watch:** Remove watches that are no longer needed.
 - **Trigger Re-check:** Manually force a check for changes on a specific watch.
