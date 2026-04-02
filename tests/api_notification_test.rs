@@ -8,8 +8,10 @@ async fn test_list_notifications() {
     let app = MockApp::new().await;
 
     let response_body = json!({
-        "notification_id_1": "mailto://test@example.com",
-        "notification_id_2": "tgram://bot_token/chat_id"
+        "notification_urls": [
+            "mailto://test@example.com",
+            "tgram://bot_token/chat_id"
+        ]
     });
 
     app.mock_get("/api/v1/notifications", 200, Some(response_body))
@@ -17,7 +19,7 @@ async fn test_list_notifications() {
 
     let notifications = app.client.list_notifications().await.unwrap();
     assert_eq!(notifications.len(), 2);
-    assert_eq!(notifications.get("notification_id_1").unwrap(), "mailto://test@example.com");
+    assert_eq!(notifications[0], "mailto://test@example.com");
 }
 
 #[tokio::test]
@@ -26,7 +28,7 @@ async fn test_add_notification() {
 
     let response_body = json!({
         "status": "success",
-        "uuid": "notification_id_1"
+        "notification_urls": ["mailto://test@example.com"]
     });
 
     app.mock_post("/api/v1/notifications", 201, Some(response_body))
@@ -37,17 +39,14 @@ async fn test_add_notification() {
         .add_notification("mailto://test@example.com")
         .await
         .unwrap();
-    assert_eq!(result.get("status").unwrap(), "success");
-    assert_eq!(result.get("uuid").unwrap(), "notification_id_1");
+    assert_eq!(result["status"], "success");
 }
 
 #[tokio::test]
 async fn test_update_notifications() {
     let app = MockApp::new().await;
 
-    let payload = json!({
-        "notification_id_1": "mailto://new@example.com"
-    });
+    let notification_urls = vec!["mailto://new@example.com".to_string()];
     let response_body = json!({
         "status": "success"
     });
@@ -55,7 +54,7 @@ async fn test_update_notifications() {
     app.mock_put("/api/v1/notifications", 200, Some(response_body))
         .await;
 
-    let result = app.client.update_notifications(payload).await.unwrap();
+    let result = app.client.update_notifications(notification_urls).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
@@ -63,14 +62,14 @@ async fn test_update_notifications() {
 async fn test_delete_notification() {
     let app = MockApp::new().await;
 
-    let uuid = "notification_id_1";
+    let url = "mailto://test@example.com";
     let response_body = json!({
         "status": "success"
     });
 
-    app.mock_delete(&format!("/api/v1/notifications/{}", uuid), 200, Some(response_body))
+    app.mock_delete("/api/v1/notifications", 200, Some(response_body))
         .await;
 
-    let result = app.client.delete_notification(uuid).await.unwrap();
+    let result = app.client.delete_notification(url).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }

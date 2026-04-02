@@ -394,3 +394,75 @@ async fn test_live_get_full_spec() {
     assert!(spec.contains("info:"));
     println!("Live Full Spec length: {}", spec.len());
 }
+
+#[tokio::test]
+async fn test_live_notification_lifecycle() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Add a notification
+    let test_url = format!("mailto://test-{}@example.com", Uuid::new_v4());
+    let add_params = serde_json::json!({
+        "notification_url": test_url
+    });
+    let add_result = mcp
+        .handle_method("add_notification", Some(add_params))
+        .await
+        .expect("Failed to add notification");
+    
+    println!("Created notification result: {:?}", add_result);
+
+    // 2. List notifications
+    let list_result = mcp
+        .handle_method("list_notifications", None)
+        .await
+        .expect("Failed to list notifications");
+    assert!(list_result.is_array());
+    let urls: Vec<String> = serde_json::from_value(list_result.clone()).unwrap();
+    assert!(urls.contains(&test_url));
+
+    // 3. Update notifications (replace all)
+    let mut new_urls = urls.clone();
+    let updated_url = format!("mailto://test-updated-{}@example.com", Uuid::new_v4());
+    // Replace our test url with the updated one
+    if let Some(pos) = new_urls.iter().position(|x| x == &test_url) {
+        new_urls[pos] = updated_url.clone();
+    } else {
+        new_urls.push(updated_url.clone());
+    }
+    
+    let update_params = serde_json::json!({
+        "notification_urls": new_urls
+    });
+    mcp.handle_method("update_notifications", Some(update_params))
+        .await
+        .expect("Failed to update notifications");
+
+    // Verify update
+    let list_result_updated = mcp
+        .handle_method("list_notifications", None)
+        .await
+        .expect("Failed to list notifications after update");
+    let urls_updated: Vec<String> = serde_json::from_value(list_result_updated).unwrap();
+    assert!(urls_updated.contains(&updated_url));
+    assert!(!urls_updated.contains(&test_url));
+
+    // 4. Delete notification
+    let delete_params = serde_json::json!({ "notification_url": updated_url });
+    mcp.handle_method("delete_notification", Some(delete_params))
+        .await
+        .expect("Failed to delete notification");
+    println!("Deleted notification: {}", updated_url);
+
+    // Verify deletion
+    let list_result_final = mcp
+        .handle_method("list_notifications", None)
+        .await
+        .expect("Failed to list notifications after delete");
+    let urls_final: Vec<String> = serde_json::from_value(list_result_final).unwrap();
+    assert!(!urls_final.contains(&updated_url));
+}

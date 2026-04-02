@@ -1,5 +1,6 @@
 use http_cache_reqwest::{CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions};
 use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::StatusCode;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use serde::{Deserialize, Serialize};
@@ -353,7 +354,7 @@ impl Client {
         Ok(spec)
     }
 
-    pub async fn list_notifications(&self) -> Result<HashMap<String, String>, ApiError> {
+    pub async fn list_notifications(&self) -> Result<Vec<String>, ApiError> {
         let url = format!("{}/api/v1/notifications", self.base_url);
         let response = self
             .http_client
@@ -361,17 +362,26 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        let notifications = response.json::<HashMap<String, String>>().await?;
-        Ok(notifications)
+        let res = response.json::<serde_json::Value>().await?;
+        let urls = res
+            .get("notification_urls")
+            .and_then(|v| v.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        Ok(urls)
     }
 
     pub async fn add_notification(
         &self,
         notification_url: &str,
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/notifications", self.base_url);
         let mut body = HashMap::new();
-        body.insert("notification_url", notification_url.to_string());
+        body.insert("notification_urls", vec![notification_url.to_string()]);
 
         let response = self
             .http_client
@@ -380,40 +390,46 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        let result = response.json::<HashMap<String, String>>().await?;
+        let result = response.json::<serde_json::Value>().await?;
         Ok(result)
     }
 
     pub async fn update_notifications(
         &self,
-        payload: serde_json::Value,
+        notification_urls: Vec<String>,
     ) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/notifications", self.base_url);
+        let mut body = HashMap::new();
+        body.insert("notification_urls", notification_urls);
+
         let response = self
             .http_client
             .put(&url)
-            .json(&payload)
+            .json(&body)
             .send()
             .await?
             .error_for_status()?;
 
-        let text = response.text().await?;
-        if text.trim().is_empty() {
-            return Ok(serde_json::json!({"status": "success"}));
-        }
-        let result =
-            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
+        let result = response.json::<serde_json::Value>().await?;
         Ok(result)
     }
 
-    pub async fn delete_notification(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
-        let url = format!("{}/api/v1/notifications/{}", self.base_url, uuid);
+    pub async fn delete_notification(&self, notification_url: &str) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/notifications", self.base_url);
+        let mut body = HashMap::new();
+        body.insert("notification_urls", vec![notification_url.to_string()]);
+
         let response = self
             .http_client
             .delete(&url)
+            .json(&body)
             .send()
             .await?
             .error_for_status()?;
+
+        if response.status() == StatusCode::NO_CONTENT {
+             return Ok(serde_json::json!({"status": "success"}));
+        }
 
         let text = response.text().await?;
         if text.trim().is_empty() {

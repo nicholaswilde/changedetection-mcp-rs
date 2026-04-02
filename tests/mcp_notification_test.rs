@@ -9,7 +9,7 @@ async fn test_mcp_list_notifications() {
     let app = MockApp::new().await;
 
     let response_body = json!({
-        "notification_id_1": "mailto://test@example.com"
+        "notification_urls": ["mailto://test@example.com"]
     });
 
     app.mock_get("/api/v1/notifications", 200, Some(response_body.clone()))
@@ -17,7 +17,8 @@ async fn test_mcp_list_notifications() {
 
     let result = app.mcp.handle_method("list_notifications", None).await.unwrap();
 
-    assert_eq!(result, response_body);
+    // The API client now returns Vec<String>, which MCP should serialize as an array
+    assert_eq!(result, json!(["mailto://test@example.com"]));
 }
 
 #[tokio::test]
@@ -26,7 +27,7 @@ async fn test_mcp_add_notification() {
 
     let response_body = json!({
         "status": "success",
-        "uuid": "notification_id_1"
+        "notification_urls": ["mailto://test@example.com"]
     });
 
     app.mock_post("/api/v1/notifications", 201, Some(response_body.clone()))
@@ -47,7 +48,7 @@ async fn test_mcp_update_notifications() {
     let app = MockApp::new().await;
 
     let params = json!({
-        "notification_id_1": "mailto://new@example.com"
+        "notification_urls": ["mailto://new@example.com"]
     });
     let response_body = json!({
         "status": "success"
@@ -69,15 +70,15 @@ async fn test_mcp_update_notifications() {
 async fn test_mcp_delete_notification() {
     let app = MockApp::new().await;
 
-    let uuid = "notification_id_1";
+    let url = "mailto://test@example.com";
     let response_body = json!({
         "status": "success"
     });
 
-    app.mock_delete(&format!("/api/v1/notifications/{}", uuid), 200, Some(response_body.clone()))
+    app.mock_delete("/api/v1/notifications", 200, Some(response_body.clone()))
         .await;
 
-    let params = json!({ "uuid": uuid });
+    let params = json!({ "notification_url": url });
     let result = app
         .mcp
         .handle_method("delete_notification", Some(params))

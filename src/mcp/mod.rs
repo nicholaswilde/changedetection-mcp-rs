@@ -90,9 +90,15 @@ pub struct AddNotificationArgs {
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
+pub struct UpdateNotificationsArgs {
+    /// The list of Apprise-compatible URLs to replace the current set
+    pub notification_urls: Vec<String>,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
 pub struct DeleteNotificationArgs {
-    /// The UUID of the notification to delete
-    pub uuid: String,
+    /// The Apprise-compatible URL to delete
+    pub notification_url: String,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -518,13 +524,13 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(result)?)
                 }
                 "update_notifications" => {
-                    let payload: serde_json::Value =
+                    let args: UpdateNotificationsArgs =
                         serde_json::from_value(params.ok_or_else(|| {
                             Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
                         })?)?;
                     let result = self
                         .client
-                        .update_notifications(payload)
+                        .update_notifications(args.notification_urls)
                         .await
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
@@ -536,7 +542,7 @@ impl ServerHandler for McpServer {
                         })?)?;
                     let result = self
                         .client
-                        .delete_notification(&args.uuid)
+                        .delete_notification(&args.notification_url)
                         .await
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
@@ -658,7 +664,7 @@ impl ServerHandler for McpServer {
                         Tool {
                             name: "update_notifications".to_string(),
                             description: "Replace all global notification endpoints".to_string(),
-                            input_schema: None,
+                            input_schema: Some(get_schema::<UpdateNotificationsArgs>()),
                             annotations: None,
                         },
                         Tool {
