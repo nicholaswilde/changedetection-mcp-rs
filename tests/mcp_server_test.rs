@@ -64,7 +64,7 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 14);
+    assert_eq!(tools.len(), 15);
 
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"list_watches"));
@@ -83,12 +83,12 @@ async fn test_mcp_tools_list() {
 async fn test_mcp_list_tags() {
     let app = MockApp::new().await;
 
-    let response_body = json!([
-        {
+    let response_body = json!({
+        "tag_id_1": {
             "uuid": "tag_id_1",
             "title": "Tag 1"
         }
-    ]);
+    });
 
     app.mock_get("/api/v1/tags", 200, Some(response_body.clone()))
         .await;
@@ -339,8 +339,10 @@ async fn test_mcp_trigger_check() {
         "status": "success"
     });
 
-    app.mock_get(
-        &format!("/api/v1/watch/{}/recheck", uuid),
+    app.mock_get_with_query(
+        &format!("/api/v1/watch/{}", uuid),
+        "recheck",
+        "1",
         200,
         Some(response_body),
     )

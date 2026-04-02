@@ -1,6 +1,6 @@
 use changedetection_mcp_rs::api::Client;
 use changedetection_mcp_rs::mcp::McpServer;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 #[allow(dead_code)]
@@ -35,6 +35,26 @@ impl MockApp {
         }
         Mock::given(method("GET"))
             .and(path(path_str))
+            .respond_with(response)
+            .mount(&self.server)
+            .await;
+    }
+
+    pub async fn mock_get_with_query(
+        &self,
+        path_str: &str,
+        query_key: &str,
+        query_val: &str,
+        status: u16,
+        body: Option<serde_json::Value>,
+    ) {
+        let mut response = ResponseTemplate::new(status);
+        if let Some(b) = body {
+            response = response.set_body_json(b);
+        }
+        Mock::given(method("GET"))
+            .and(path(path_str))
+            .and(query_param(query_key, query_val))
             .respond_with(response)
             .mount(&self.server)
             .await;

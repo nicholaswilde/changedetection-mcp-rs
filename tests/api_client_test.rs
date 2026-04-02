@@ -86,8 +86,10 @@ async fn test_trigger_check() {
         "status": "success"
     });
 
-    app.mock_get(
-        &format!("/api/v1/watch/{}/recheck", uuid),
+    app.mock_get_with_query(
+        &format!("/api/v1/watch/{}", uuid),
+        "recheck",
+        "1",
         200,
         Some(response_body),
     )
@@ -186,18 +188,18 @@ async fn test_search_watches() {
 async fn test_list_tags() {
     let app = MockApp::new().await;
 
-    let response_body = json!([
-        {
+    let response_body = json!({
+        "tag_id_1": {
             "uuid": "tag_id_1",
             "title": "Tag 1"
         }
-    ]);
+    });
 
     app.mock_get("/api/v1/tags", 200, Some(response_body)).await;
 
     let tags = app.client.list_tags().await.unwrap();
-    assert_eq!(tags.len(), 1);
-    assert_eq!(tags[0]["title"], "Tag 1");
+    assert_eq!(tags.as_object().unwrap().len(), 1);
+    assert_eq!(tags["tag_id_1"]["title"], "Tag 1");
 }
 
 #[tokio::test]

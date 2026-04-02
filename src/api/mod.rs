@@ -25,6 +25,15 @@ pub struct Watch {
     pub title: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SystemInfo {
+    pub watch_count: usize,
+    pub queue_size: usize,
+    pub overdue_watches: Vec<String>,
+    pub uptime: f64,
+    pub version: String,
+}
+
 #[derive(Clone)]
 pub struct Client {
     base_url: String,
@@ -64,6 +73,18 @@ impl Client {
             base_url: base_url.trim_end_matches('/').to_string(),
             http_client,
         }
+    }
+
+    pub async fn get_system_info(&self) -> Result<SystemInfo, ApiError> {
+        let url = format!("{}/api/v1/systeminfo", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let info = response.json::<SystemInfo>().await?;
+        Ok(info)
     }
 
     pub async fn list_watches(
@@ -131,23 +152,11 @@ impl Client {
         Ok(result)
     }
 
-    pub async fn delete_watch(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
-        let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self
-            .http_client
-            .delete(&url)
-            .send()
-            .await?
-            .error_for_status()?;
-        let result = response.json::<HashMap<String, String>>().await?;
-        Ok(result)
-    }
-
     pub async fn update_watch(
         &self,
         uuid: &str,
         payload: serde_json::Value,
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
         let response = self
             .http_client
@@ -157,31 +166,55 @@ impl Client {
             .await?
             .error_for_status()?;
 
-        // ChangeDetection.io PUT might return an empty body or success message.
-        // We attempt to decode it, but return an empty map if it's empty or invalid JSON.
         let text = response.text().await?;
         if text.trim().is_empty() {
-            return Ok(HashMap::new());
+            return Ok(serde_json::json!({"status": "success"}));
         }
 
         let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            let mut map = HashMap::new();
-            map.insert("status".to_string(), "success".to_string());
-            map
+            serde_json::json!({"status": text})
         });
 
         Ok(result)
     }
 
-    pub async fn trigger_check(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
-        let url = format!("{}/api/v1/watch/{}/recheck", self.base_url, uuid);
+    pub async fn delete_watch(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
+        let response = self
+            .http_client
+            .delete(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(serde_json::json!({"status": "success"}));
+        }
+        
+        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
+            serde_json::json!({"status": text})
+        });
+        Ok(result)
+    }
+
+    pub async fn trigger_check(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/watch/{}?recheck=1", self.base_url, uuid);
         let response = self
             .http_client
             .get(&url)
             .send()
             .await?
             .error_for_status()?;
-        let result = response.json::<HashMap<String, String>>().await?;
+        
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(serde_json::json!({"status": "success"}));
+        }
+
+        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
+            serde_json::json!({"status": text})
+        });
         Ok(result)
     }
 
@@ -217,7 +250,7 @@ impl Client {
         Ok(diff)
     }
 
-    pub async fn list_tags(&self) -> Result<Vec<serde_json::Value>, ApiError> {
+    pub async fn list_tags(&self) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/tags", self.base_url);
         let response = self
             .http_client
@@ -226,7 +259,7 @@ impl Client {
             .await?
             .error_for_status()?;
         let text = response.text().await?;
-        let tags = serde_json::from_str(&text).unwrap_or_else(|_| Vec::new());
+        let tags = serde_json::from_str(&text)?;
         Ok(tags)
     }
 
@@ -272,7 +305,7 @@ impl Client {
         &self,
         uuid: &str,
         payload: serde_json::Value,
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
         let response = self
             .http_client
@@ -283,17 +316,15 @@ impl Client {
             .error_for_status()?;
         let text = response.text().await?;
         if text.trim().is_empty() {
-            return Ok(HashMap::new());
+            return Ok(serde_json::json!({"status": "success"}));
         }
         let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            let mut map = HashMap::new();
-            map.insert("status".to_string(), text);
-            map
+            serde_json::json!({"status": text})
         });
         Ok(result)
     }
 
-    pub async fn delete_tag(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
+    pub async fn delete_tag(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
         let response = self
             .http_client
@@ -303,12 +334,10 @@ impl Client {
             .error_for_status()?;
         let text = response.text().await?;
         if text.trim().is_empty() {
-            return Ok(HashMap::new());
+            return Ok(serde_json::json!({"status": "success"}));
         }
         let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            let mut map = HashMap::new();
-            map.insert("status".to_string(), text);
-            map
+            serde_json::json!({"status": text})
         });
         Ok(result)
     }
