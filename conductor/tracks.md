@@ -5,7 +5,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 
-## [ ] Track: System Info
+## [x] Track: System Info
 - **Track Folder:** [./tracks/system_info_20260331/](./tracks/system_info_20260331/)
 
 ---
