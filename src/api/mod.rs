@@ -352,4 +352,75 @@ impl Client {
         let spec = response.text().await?;
         Ok(spec)
     }
+
+    pub async fn list_notifications(&self) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/notifications", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let notifications = response.json::<HashMap<String, String>>().await?;
+        Ok(notifications)
+    }
+
+    pub async fn add_notification(
+        &self,
+        notification_url: &str,
+    ) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/notifications", self.base_url);
+        let mut body = HashMap::new();
+        body.insert("notification_url", notification_url.to_string());
+
+        let response = self
+            .http_client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await?
+            .error_for_status()?;
+        let result = response.json::<HashMap<String, String>>().await?;
+        Ok(result)
+    }
+
+    pub async fn update_notifications(
+        &self,
+        payload: serde_json::Value,
+    ) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/notifications", self.base_url);
+        let response = self
+            .http_client
+            .put(&url)
+            .json(&payload)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(serde_json::json!({"status": "success"}));
+        }
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
+        Ok(result)
+    }
+
+    pub async fn delete_notification(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/notifications/{}", self.base_url, uuid);
+        let response = self
+            .http_client
+            .delete(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(serde_json::json!({"status": "success"}));
+        }
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
+        Ok(result)
+    }
 }
