@@ -4,10 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: MCP Server Token Usage Optimization
-- **Track Folder:** [./tracks/mcp_token_optimization_20260331/](./tracks/mcp_token_optimization_20260331/)
-
----
 
 ## [ ] Track: System Info
 - **Track Folder:** [./tracks/system_info_20260331/](./tracks/system_info_20260331/)
