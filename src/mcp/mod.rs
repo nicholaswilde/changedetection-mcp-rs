@@ -125,6 +125,14 @@ pub struct GetWatchDiffArgs {
     pub format: Option<String>,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct GetSnapshotContentArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// The timestamp of the snapshot
+    pub timestamp: String,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -489,6 +497,18 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "get_snapshot_content" => {
+                    let args: GetSnapshotContentArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .get_snapshot_content(&args.uuid, &args.timestamp)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "get_system_info" => {
                     let info =
                         self.client.get_system_info().await.map_err(|e| {
@@ -647,6 +667,13 @@ impl ServerHandler for McpServer {
                             description: "Get the difference between two snapshots of a watch"
                                 .to_string(),
                             input_schema: Some(get_schema::<GetWatchDiffArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_snapshot_content".to_string(),
+                            description: "Get the full content of a specific watch snapshot"
+                                .to_string(),
+                            input_schema: Some(get_schema::<GetSnapshotContentArgs>()),
                             annotations: None,
                         },
                         Tool {
