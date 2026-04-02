@@ -19,7 +19,6 @@ async fn main() -> anyhow::Result<()> {
 
     let api_key = args
         .api_key
-        .or_else(|| env::var("CHANGEDETECTION_API_KEY").ok())
         .expect("CHANGEDETECTION_API_KEY not set (via --api-key or env)");
 
     let base_url = env::var("CHANGEDETECTION_BASE_URL")

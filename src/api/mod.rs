@@ -120,7 +120,20 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        let result = response.json::<HashMap<String, String>>().await?;
+        
+        // ChangeDetection.io PUT might return an empty body or success message.
+        // We attempt to decode it, but return an empty map if it's empty or invalid JSON.
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(HashMap::new());
+        }
+        
+        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
+            let mut map = HashMap::new();
+            map.insert("status".to_string(), "success".to_string());
+            map
+        });
+        
         Ok(result)
     }
 
