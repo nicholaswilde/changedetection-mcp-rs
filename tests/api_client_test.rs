@@ -2,6 +2,8 @@ mod common;
 
 use common::MockApp;
 use serde_json::json;
+use wiremock::matchers::{method, path, query_param};
+use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
 async fn test_list_watches() {
@@ -135,4 +137,28 @@ async fn test_update_watch() {
         .await
         .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
+}
+
+#[tokio::test]
+async fn test_search_watches() {
+    let app = MockApp::new().await;
+
+    let query = "example";
+    let response_body = json!({
+        "watch_id_1": {
+            "url": "https://example.com",
+            "title": "Example"
+        }
+    });
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/search"))
+        .and(query_param("q", query))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+        .mount(&app.server)
+        .await;
+
+    let watches = app.client.search_watches(query).await.unwrap();
+    assert_eq!(watches.len(), 1);
+    assert!(watches.contains_key("watch_id_1"));
 }

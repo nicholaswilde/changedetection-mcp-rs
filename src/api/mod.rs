@@ -76,6 +76,13 @@ impl Client {
         Ok(watches)
     }
 
+    pub async fn search_watches(&self, query: &str) -> Result<HashMap<String, Watch>, ApiError> {
+        let url = format!("{}/api/v1/search?q={}", self.base_url, query);
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let watches = response.json::<HashMap<String, Watch>>().await?;
+        Ok(watches)
+    }
+
     pub async fn get_watch_details(&self, uuid: &str) -> Result<Watch, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
         let response = self.http_client.get(&url).send().await?.error_for_status()?;
