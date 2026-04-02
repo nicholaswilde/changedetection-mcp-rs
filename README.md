@@ -10,12 +10,26 @@ A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MC
 
 ## ✨ Features
 
-- **Standard Tools:**
+- **Watch Management:**
     - `list_watches`: List all watches in ChangeDetection.io.
+    - `search_watches`: Search for watches by URL or title.
     - `get_watch_details`: Get details of a specific watch.
     - `create_watch`: Create a new watch.
+    - `update_watch`: Update a specific watch.
     - `delete_watch`: Delete a specific watch.
     - `trigger_check`: Trigger a re-check for a specific watch.
+- **Tag Management:**
+    - `list_tags`: List all tags.
+    - `create_tag`: Create a new tag.
+    - `get_tag_details`: Get details of a specific tag.
+    - `update_tag`: Update a specific tag.
+    - `delete_tag`: Delete a specific tag.
+- **Snapshot & Diff Tools:**
+    - `get_watch_history`: Get the history of snapshots for a specific watch.
+    - `get_watch_diff`: Get the difference between two snapshots of a watch.
+- **System Discovery:**
+    - `get_system_info`: Retrieve ChangeDetection.io system status and version.
+    - `get_full_spec`: Retrieve the full OpenAPI specification of the instance.
 - **Multi-Transport Support:**
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
   - **HTTP/JSON-RPC:** Remote transport for testing and external clients.
