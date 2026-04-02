@@ -439,4 +439,16 @@ impl Client {
             serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
         Ok(result)
     }
+
+    pub async fn get_snapshot_content(&self, uuid: &str, timestamp: &str) -> Result<String, ApiError> {
+        let url = format!("{}/api/v1/watch/{}/history/{}", self.base_url, uuid, timestamp);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let content = response.text().await?;
+        Ok(content)
+    }
 }
