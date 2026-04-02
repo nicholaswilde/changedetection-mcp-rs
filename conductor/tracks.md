@@ -14,11 +14,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Live Test: Tag Management
-- **Track Folder:** [./tracks/live_test_tag_management_20260401/](./tracks/live_test_tag_management_20260401/)
-
----
-
 ## [ ] Track: Live Test: Search & Filtering
 - **Track Folder:** [./tracks/live_test_search_filtering_20260401/](./tracks/live_test_search_filtering_20260401/)
 
