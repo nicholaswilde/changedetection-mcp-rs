@@ -1,4 +1,4 @@
-# Implementation Plan
+# Implementation Plan [checkpoint: 17722e1]
 
 1. [x] **API Client Extension:** (df5a90d)
    - Add `search_watches(query: &str)` to the `Client` in `src/api/mod.rs`.
