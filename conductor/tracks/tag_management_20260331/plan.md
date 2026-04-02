@@ -1,4 +1,4 @@
-# Implementation Plan
+# Implementation Plan [checkpoint: c8ab4b6]
 
 1. [x] **API Client Extension:** (960a066)
    - Add `list_tags()`, `create_tag(name: &str)`, etc. to the `Client` in `src/api/mod.rs`.
