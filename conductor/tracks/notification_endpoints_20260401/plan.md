@@ -10,7 +10,7 @@
    - Implement handlers in `handle_method`.
 3. **Unit Tests** [x] (1c30df2, a40fa64):
    - Add unit tests for notification methods. (Completed as part of TDD workflow)
-4. **Live Verification**:
+4. **Live Verification** [x] (40d35b5):
    - Implement `test_live_notification_lifecycle` in `tests/live.rs`.
    - Run `task test:live`.
    - Ensure cleanup of any test notification URLs.
