@@ -1,4 +1,4 @@
-# Implementation Plan
+# Implementation Plan [checkpoint: b8c1d4f]
 
 1. [x] **API Client Extension:** (9216d32)
    - Add `update_watch(uuid: &str, payload: serde_json::Value)` to the `Client` in `src/api/mod.rs`.
