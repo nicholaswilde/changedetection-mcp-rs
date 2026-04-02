@@ -163,3 +163,88 @@ async fn test_search_watches() {
     assert_eq!(watches.len(), 1);
     assert!(watches.contains_key("watch_id_1"));
 }
+
+#[tokio::test]
+async fn test_list_tags() {
+    let app = MockApp::new().await;
+
+    let response_body = json!([
+        {
+            "uuid": "tag_id_1",
+            "title": "Tag 1"
+        }
+    ]);
+
+    app.mock_get("/api/v1/tags", 200, Some(response_body)).await;
+
+    let tags = app.client.list_tags().await.unwrap();
+    assert_eq!(tags.len(), 1);
+    assert_eq!(tags[0]["title"], "Tag 1");
+}
+
+#[tokio::test]
+async fn test_create_tag() {
+    let app = MockApp::new().await;
+
+    let response_body = json!("tag_id_1");
+
+    app.mock_post("/api/v1/tag", 201, Some(response_body)).await;
+
+    let result = app.client
+        .create_tag("New Tag")
+        .await
+        .unwrap();
+    assert_eq!(result, "tag_id_1");
+}
+
+#[tokio::test]
+async fn test_get_tag_details() {
+    let app = MockApp::new().await;
+
+    let uuid = "tag_id_1";
+    let response_body = json!({
+        "uuid": uuid,
+        "title": "Tag 1"
+    });
+
+    app.mock_get(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body)).await;
+
+    let tag = app.client.get_tag_details(uuid).await.unwrap();
+    assert_eq!(tag["title"], "Tag 1");
+}
+
+#[tokio::test]
+async fn test_update_tag() {
+    let app = MockApp::new().await;
+
+    let uuid = "tag_id_1";
+    let payload = json!({
+        "title": "Updated Tag"
+    });
+    let response_body = json!({
+        "status": "success"
+    });
+
+    app.mock_put(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body)).await;
+
+    let result = app.client
+        .update_tag(uuid, payload)
+        .await
+        .unwrap();
+    assert_eq!(result.get("status").unwrap(), "success");
+}
+
+#[tokio::test]
+async fn test_delete_tag() {
+    let app = MockApp::new().await;
+
+    let uuid = "tag_id_1";
+    let response_body = json!({
+        "status": "success"
+    });
+
+    app.mock_delete(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body)).await;
+
+    let result = app.client.delete_tag(uuid).await.unwrap();
+    assert_eq!(result.get("status").unwrap(), "success");
+}

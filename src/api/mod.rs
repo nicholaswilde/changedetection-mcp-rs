@@ -167,4 +167,66 @@ impl Client {
         let diff = response.text().await?;
         Ok(diff)
     }
+
+    pub async fn list_tags(&self) -> Result<Vec<serde_json::Value>, ApiError> {
+        let url = format!("{}/api/v1/tags", self.base_url);
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let tags = response.json::<Vec<serde_json::Value>>().await?;
+        Ok(tags)
+    }
+
+    pub async fn create_tag(&self, title: &str) -> Result<String, ApiError> {
+        let url = format!("{}/api/v1/tag", self.base_url);
+        let mut body = HashMap::new();
+        body.insert("title", title.to_string());
+
+        let response = self
+            .http_client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await?
+            .error_for_status()?;
+        let result = response.json::<String>().await?;
+        Ok(result)
+    }
+
+    pub async fn get_tag_details(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
+        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let tag = response.json::<serde_json::Value>().await?;
+        Ok(tag)
+    }
+
+    pub async fn update_tag(
+        &self,
+        uuid: &str,
+        payload: serde_json::Value,
+    ) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
+        let response = self
+            .http_client
+            .put(&url)
+            .json(&payload)
+            .send()
+            .await?
+            .error_for_status()?;
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(HashMap::new());
+        }
+        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
+            let mut map = HashMap::new();
+            map.insert("status".to_string(), "success".to_string());
+            map
+        });
+        Ok(result)
+    }
+
+    pub async fn delete_tag(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
+        let response = self.http_client.delete(&url).send().await?.error_for_status()?;
+        let result = response.json::<HashMap<String, String>>().await?;
+        Ok(result)
+    }
 }
