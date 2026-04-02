@@ -60,7 +60,7 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
     
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 9);
+    assert_eq!(tools.len(), 14);
     
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"list_watches"));
@@ -68,6 +68,98 @@ async fn test_mcp_tools_list() {
     assert!(tool_names.contains(&"get_watch_diff"));
     assert!(tool_names.contains(&"update_watch"));
     assert!(tool_names.contains(&"search_watches"));
+    assert!(tool_names.contains(&"list_tags"));
+    assert!(tool_names.contains(&"create_tag"));
+    assert!(tool_names.contains(&"get_tag_details"));
+    assert!(tool_names.contains(&"update_tag"));
+    assert!(tool_names.contains(&"delete_tag"));
+}
+
+#[tokio::test]
+async fn test_mcp_list_tags() {
+    let app = MockApp::new().await;
+
+    let response_body = json!([
+        {
+            "uuid": "tag_id_1",
+            "title": "Tag 1"
+        }
+    ]);
+
+    app.mock_get("/api/v1/tags", 200, Some(response_body.clone())).await;
+
+    let result = app.mcp.handle_method("list_tags", None).await.unwrap();
+    
+    assert_eq!(result, response_body);
+}
+
+#[tokio::test]
+async fn test_mcp_create_tag() {
+    let app = MockApp::new().await;
+
+    let response_body = json!("tag_id_1");
+
+    app.mock_post("/api/v1/tag", 201, Some(response_body.clone())).await;
+
+    let params = json!({ "title": "New Tag" });
+    let result = app.mcp.handle_method("create_tag", Some(params)).await.unwrap();
+    
+    assert_eq!(result, response_body);
+}
+
+#[tokio::test]
+async fn test_mcp_get_tag_details() {
+    let app = MockApp::new().await;
+
+    let uuid = "tag_id_1";
+    let response_body = json!({
+        "uuid": uuid,
+        "title": "Tag 1"
+    });
+
+    app.mock_get(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body.clone())).await;
+
+    let params = json!({ "uuid": uuid });
+    let result = app.mcp.handle_method("get_tag_details", Some(params)).await.unwrap();
+    
+    assert_eq!(result, response_body);
+}
+
+#[tokio::test]
+async fn test_mcp_update_tag() {
+    let app = MockApp::new().await;
+
+    let uuid = "tag_id_1";
+    let params = json!({
+        "uuid": uuid,
+        "title": "Updated Tag"
+    });
+    let response_body = json!({
+        "status": "success"
+    });
+
+    app.mock_put(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body.clone())).await;
+
+    let result = app.mcp.handle_method("update_tag", Some(params)).await.unwrap();
+    
+    assert_eq!(result, response_body);
+}
+
+#[tokio::test]
+async fn test_mcp_delete_tag() {
+    let app = MockApp::new().await;
+
+    let uuid = "tag_id_1";
+    let response_body = json!({
+        "status": "success"
+    });
+
+    app.mock_delete(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body.clone())).await;
+
+    let params = json!({ "uuid": uuid });
+    let result = app.mcp.handle_method("delete_tag", Some(params)).await.unwrap();
+    
+    assert_eq!(result, response_body);
 }
 
 #[tokio::test]

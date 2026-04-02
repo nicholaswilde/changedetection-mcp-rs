@@ -63,6 +63,32 @@ pub struct DeleteWatchArgs {
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
+pub struct CreateTagArgs {
+    /// The title of the tag
+    pub title: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct GetTagDetailsArgs {
+    /// The UUID of the tag
+    pub uuid: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct UpdateTagArgs {
+    /// The UUID of the tag to update
+    pub uuid: String,
+    /// The title of the tag
+    pub title: Option<String>,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct DeleteTagArgs {
+    /// The UUID of the tag to delete
+    pub uuid: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
 pub struct TriggerCheckArgs {
     /// The UUID of the watch to trigger a check for
     pub uuid: String,
@@ -347,6 +373,66 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "list_tags" => {
+                    let result = self
+                        .client
+                        .list_tags()
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "create_tag" => {
+                    let args: CreateTagArgs = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let result = self
+                        .client
+                        .create_tag(&args.title)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "get_tag_details" => {
+                    let args: GetTagDetailsArgs = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let result = self
+                        .client
+                        .get_tag_details(&args.uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "update_tag" => {
+                    let mut payload: serde_json::Value = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let uuid = payload
+                        .get("uuid")
+                        .and_then(|v| v.as_str())
+                        .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing uuid"))?
+                        .to_string();
+                    if let Some(map) = payload.as_object_mut() {
+                        map.remove("uuid");
+                    }
+                    let result = self
+                        .client
+                        .update_tag(&uuid, payload)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "delete_tag" => {
+                    let args: DeleteTagArgs = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let result = self
+                        .client
+                        .delete_tag(&args.uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "trigger_check" => {
                     let args: TriggerCheckArgs = serde_json::from_value(params.ok_or_else(|| {
                         Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
@@ -416,6 +502,36 @@ impl ServerHandler for McpServer {
                             name: "delete_watch".to_string(),
                             description: "Delete a specific watch".to_string(),
                             input_schema: Some(get_schema::<DeleteWatchArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_tags".to_string(),
+                            description: "List all tags in ChangeDetection.io".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "create_tag".to_string(),
+                            description: "Create a new tag".to_string(),
+                            input_schema: Some(get_schema::<CreateTagArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_tag_details".to_string(),
+                            description: "Get details of a specific tag".to_string(),
+                            input_schema: Some(get_schema::<GetTagDetailsArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "update_tag".to_string(),
+                            description: "Update a specific tag".to_string(),
+                            input_schema: Some(get_schema::<UpdateTagArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "delete_tag".to_string(),
+                            description: "Delete a specific tag".to_string(),
+                            input_schema: Some(get_schema::<DeleteTagArgs>()),
                             annotations: None,
                         },
                         Tool {
