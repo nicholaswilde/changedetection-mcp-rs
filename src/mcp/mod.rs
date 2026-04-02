@@ -25,6 +25,12 @@ pub struct ListWatchesArgs {
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
+pub struct SearchWatchesArgs {
+    /// The search query (URL or title)
+    pub query: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
 pub struct GetWatchDetailsArgs {
     /// The UUID of the watch
     pub uuid: String,
@@ -274,6 +280,17 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(watches)?)
                 }
+                "search_watches" => {
+                    let args: SearchWatchesArgs = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    let watches = self
+                        .client
+                        .search_watches(&args.query)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(watches)?)
+                }
                 "get_watch_details" => {
                     let args: GetWatchDetailsArgs = serde_json::from_value(params.ok_or_else(|| {
                         Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
@@ -369,6 +386,12 @@ impl ServerHandler for McpServer {
                             name: "list_watches".to_string(),
                             description: "List all watches in ChangeDetection.io".to_string(),
                             input_schema: Some(get_schema::<ListWatchesArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "search_watches".to_string(),
+                            description: "Search for watches by URL or title".to_string(),
+                            input_schema: Some(get_schema::<SearchWatchesArgs>()),
                             annotations: None,
                         },
                         Tool {

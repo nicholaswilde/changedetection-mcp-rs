@@ -60,13 +60,40 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
     
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 8);
+    assert_eq!(tools.len(), 9);
     
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"list_watches"));
     assert!(tool_names.contains(&"get_watch_history"));
     assert!(tool_names.contains(&"get_watch_diff"));
     assert!(tool_names.contains(&"update_watch"));
+    assert!(tool_names.contains(&"search_watches"));
+}
+
+#[tokio::test]
+async fn test_mcp_search_watches() {
+    let app = MockApp::new().await;
+
+    let query = "example";
+    let response_body = json!({
+        "watch_id_1": {
+            "url": "https://example.com",
+            "title": "Example"
+        }
+    });
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/search"))
+        .and(query_param("q", query))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+        .mount(&app.server)
+        .await;
+
+    let params = json!({ "query": query });
+    let result = app.mcp.handle_method("search_watches", Some(params)).await.unwrap();
+    
+    let watches: serde_json::Value = serde_json::from_value(result).unwrap();
+    assert!(watches.get("watch_id_1").is_some());
 }
 
 #[tokio::test]
