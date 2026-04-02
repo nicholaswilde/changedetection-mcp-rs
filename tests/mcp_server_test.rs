@@ -77,6 +77,27 @@ async fn test_mcp_tools_list() {
     assert!(tool_names.contains(&"get_tag_details"));
     assert!(tool_names.contains(&"update_tag"));
     assert!(tool_names.contains(&"delete_tag"));
+    assert!(tool_names.contains(&"get_system_info"));
+}
+
+#[tokio::test]
+async fn test_mcp_get_system_info() {
+    let app = MockApp::new().await;
+
+    let response_body = json!({
+        "watch_count": 10,
+        "queue_size": 2,
+        "overdue_watches": ["watch-1"],
+        "uptime": 3600.0,
+        "version": "0.45.2"
+    });
+
+    app.mock_get("/api/v1/systeminfo", 200, Some(response_body.clone()))
+        .await;
+
+    let result = app.mcp.handle_method("get_system_info", None).await.unwrap();
+
+    assert_eq!(result, response_body);
 }
 
 #[tokio::test]
