@@ -24,7 +24,13 @@ A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MC
     - `get_tag_details`: Get details of a specific tag.
     - `update_tag`: Update a specific tag.
     - `delete_tag`: Delete a specific tag.
+- **Notification Management:**
+    - `list_notifications`: List all global notification endpoints.
+    - `add_notification`: Add a new global notification endpoint.
+    - `update_notifications`: Replace all global notification endpoints.
+    - `delete_notification`: Delete a global notification endpoint.
 - **Snapshot & Diff Tools:**
+
     - `get_watch_history`: Get the history of snapshots for a specific watch.
     - `get_watch_diff`: Get the difference between two snapshots of a watch.
 - **System Discovery:**
