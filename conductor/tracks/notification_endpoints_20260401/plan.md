@@ -4,7 +4,7 @@
 1. **API Implementation** [x] (1c30df2):
    - Update `src/api/mod.rs`.
    - Add `list_notifications`, `add_notification`, `update_notifications`, `delete_notification`.
-2. **MCP Integration**:
+2. **MCP Integration** [x] (a40fa64):
    - Update `src/mcp/mod.rs`.
    - Register new tools in `list_tools`.
    - Implement handlers in `handle_method`.
