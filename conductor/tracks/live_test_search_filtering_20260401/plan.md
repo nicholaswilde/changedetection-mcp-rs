@@ -9,5 +9,5 @@
 2. **[x] Execute and Verify**: 35a221e
    - Run `task test:live`.
    - Ensure the output shows expected matches.
-3. **Task Completion**:
+3. **[x] Task Completion**: de0889a
    - Document any discrepancies between API spec and live responses.
