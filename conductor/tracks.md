@@ -9,11 +9,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Update Watch
-- **Track Folder:** [./tracks/update_watch_20260331/](./tracks/update_watch_20260331/)
-
----
-
 ## [ ] Track: Search Watches
 - **Track Folder:** [./tracks/search_watches_20260331/](./tracks/search_watches_20260331/)
 
