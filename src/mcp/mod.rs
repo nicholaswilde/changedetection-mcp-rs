@@ -84,6 +84,18 @@ pub struct DeleteTagArgs {
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
+pub struct AddNotificationArgs {
+    /// The Apprise-compatible URL to add (e.g., mailto://test@example.com)
+    pub notification_url: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct DeleteNotificationArgs {
+    /// The UUID of the notification to delete
+    pub uuid: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
 pub struct TriggerCheckArgs {
     /// The UUID of the watch to trigger a check for
     pub uuid: String,
@@ -485,6 +497,50 @@ impl ServerHandler for McpServer {
                         })?;
                     Ok(serde_json::to_value(spec)?)
                 }
+                "list_notifications" => {
+                    let result = self
+                        .client
+                        .list_notifications()
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "add_notification" => {
+                    let args: AddNotificationArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .add_notification(&args.notification_url)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "update_notifications" => {
+                    let payload: serde_json::Value =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .update_notifications(payload)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "delete_notification" => {
+                    let args: DeleteNotificationArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .delete_notification(&args.uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
@@ -585,6 +641,30 @@ impl ServerHandler for McpServer {
                             description: "Get the difference between two snapshots of a watch"
                                 .to_string(),
                             input_schema: Some(get_schema::<GetWatchDiffArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_notifications".to_string(),
+                            description: "List all global notification endpoints".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "add_notification".to_string(),
+                            description: "Add a new global notification endpoint".to_string(),
+                            input_schema: Some(get_schema::<AddNotificationArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "update_notifications".to_string(),
+                            description: "Replace all global notification endpoints".to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "delete_notification".to_string(),
+                            description: "Delete a global notification endpoint".to_string(),
+                            input_schema: Some(get_schema::<DeleteNotificationArgs>()),
                             annotations: None,
                         },
                     ];
