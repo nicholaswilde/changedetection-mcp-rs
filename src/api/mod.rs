@@ -66,26 +66,44 @@ impl Client {
         }
     }
 
-    pub async fn list_watches(&self, tag: Option<&str>) -> Result<HashMap<String, Watch>, ApiError> {
+    pub async fn list_watches(
+        &self,
+        tag: Option<&str>,
+    ) -> Result<HashMap<String, Watch>, ApiError> {
         let mut url = format!("{}/api/v1/watch", self.base_url);
         if let Some(tag) = tag {
             url.push_str(&format!("?tag={}", tag));
         }
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let watches = response.json::<HashMap<String, Watch>>().await?;
         Ok(watches)
     }
 
     pub async fn search_watches(&self, query: &str) -> Result<HashMap<String, Watch>, ApiError> {
         let url = format!("{}/api/v1/search?q={}&partial=1", self.base_url, query);
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let watches = response.json::<HashMap<String, Watch>>().await?;
         Ok(watches)
     }
 
     pub async fn get_watch_details(&self, uuid: &str) -> Result<Watch, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let watch = response.json::<Watch>().await?;
         Ok(watch)
     }
@@ -102,14 +120,25 @@ impl Client {
             body.insert("tag", tag.to_string());
         }
 
-        let response = self.http_client.post(&endpoint).json(&body).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .post(&endpoint)
+            .json(&body)
+            .send()
+            .await?
+            .error_for_status()?;
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }
 
     pub async fn delete_watch(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self.http_client.delete(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .delete(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }
@@ -127,50 +156,75 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        
+
         // ChangeDetection.io PUT might return an empty body or success message.
         // We attempt to decode it, but return an empty map if it's empty or invalid JSON.
         let text = response.text().await?;
         if text.trim().is_empty() {
             return Ok(HashMap::new());
         }
-        
+
         let result = serde_json::from_str(&text).unwrap_or_else(|_| {
             let mut map = HashMap::new();
             map.insert("status".to_string(), "success".to_string());
             map
         });
-        
+
         Ok(result)
     }
 
     pub async fn trigger_check(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/watch/{}/recheck", self.base_url, uuid);
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let result = response.json::<HashMap<String, String>>().await?;
         Ok(result)
     }
 
     pub async fn get_watch_history(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/watch/{}/history", self.base_url, uuid);
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let history = response.json::<HashMap<String, String>>().await?;
         Ok(history)
     }
 
-    pub async fn get_watch_diff(&self, uuid: &str, from: &str, to: &str) -> Result<String, ApiError> {
+    pub async fn get_watch_diff(
+        &self,
+        uuid: &str,
+        from: &str,
+        to: &str,
+    ) -> Result<String, ApiError> {
         let url = format!(
             "{}/api/v1/watch/{}/difference/{}/{}",
             self.base_url, uuid, from, to
         );
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let diff = response.text().await?;
         Ok(diff)
     }
 
     pub async fn list_tags(&self) -> Result<Vec<serde_json::Value>, ApiError> {
         let url = format!("{}/api/v1/tags", self.base_url);
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let text = response.text().await?;
         let tags = serde_json::from_str(&text).unwrap_or_else(|_| Vec::new());
         Ok(tags)
@@ -189,21 +243,26 @@ impl Client {
             .await?
             .error_for_status()?;
         let text = response.text().await?;
-        
+
         // The API might return a UUID string or a JSON object with a uuid field
         if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
             if let Some(uuid) = val.get("uuid").and_then(|v| v.as_str()) {
                 return Ok(uuid.to_string());
             }
         }
-        
+
         let result = text.trim_matches('"').trim().to_string();
         Ok(result)
     }
 
     pub async fn get_tag_details(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
-        let response = self.http_client.get(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let text = response.text().await?;
         let tag = serde_json::from_str(&text)?;
         Ok(tag)
@@ -236,7 +295,12 @@ impl Client {
 
     pub async fn delete_tag(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
-        let response = self.http_client.delete(&url).send().await?.error_for_status()?;
+        let response = self
+            .http_client
+            .delete(&url)
+            .send()
+            .await?
+            .error_for_status()?;
         let text = response.text().await?;
         if text.trim().is_empty() {
             return Ok(HashMap::new());

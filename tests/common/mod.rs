@@ -3,12 +3,14 @@ use changedetection_mcp_rs::mcp::McpServer;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
+#[allow(dead_code)]
 pub struct MockApp {
     pub server: MockServer,
     pub client: Client,
     pub mcp: McpServer,
 }
 
+#[allow(dead_code)]
 impl MockApp {
     pub async fn new() -> Self {
         Self::new_with_timeout(std::time::Duration::from_secs(10)).await
@@ -18,7 +20,7 @@ impl MockApp {
         let server = MockServer::start().await;
         let client = Client::new_with_timeout(server.uri(), "test_api_key".to_string(), timeout);
         let mcp = McpServer::new(client.clone());
-        
+
         Self {
             server,
             client,

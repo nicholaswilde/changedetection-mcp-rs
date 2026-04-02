@@ -21,7 +21,13 @@ pub struct Args {
     pub config: Option<String>,
 
     /// Log level (trace, debug, info, warn, error)
-    #[arg(short, long, value_name = "LEVEL", default_value = "info", env = "LOG_LEVEL")]
+    #[arg(
+        short,
+        long,
+        value_name = "LEVEL",
+        default_value = "info",
+        env = "LOG_LEVEL"
+    )]
     pub log_level: String,
 
     /// Log format (text, json)
@@ -37,7 +43,13 @@ pub struct Args {
     pub api_key: Option<String>,
 
     /// Transport to use (stdio, http)
-    #[arg(short, long, value_enum, default_value = "stdio", env = "MCP_TRANSPORT")]
+    #[arg(
+        short,
+        long,
+        value_enum,
+        default_value = "stdio",
+        env = "MCP_TRANSPORT"
+    )]
     pub transport: Transport,
 
     /// HTTP host

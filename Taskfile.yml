@@ -42,6 +42,21 @@ tasks:
     cmds:
       - cargo build --release
 
+  build:amd64:
+    desc: Build for amd64 (x86_64-unknown-linux-gnu)
+    cmds:
+      - cross build --release --target x86_64-unknown-linux-gnu
+
+  build:arm64:
+    desc: Build for arm64 (aarch64-unknown-linux-gnu)
+    cmds:
+      - cross build --release --target aarch64-unknown-linux-gnu
+
+  build:armv7:
+    desc: Build for armv7 (armv7-unknown-linux-gnueabihf)
+    cmds:
+      - cross build --release --target armv7-unknown-linux-gnueabihf
+
   build:debug:
     desc: Build the project in debug mode
     cmds:

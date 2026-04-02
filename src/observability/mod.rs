@@ -1,6 +1,6 @@
-use tracing_subscriber::{fmt, prelude::*, EnvFilter, Registry, Layer};
-use tracing_appender::non_blocking::WorkerGuard;
 use std::io;
+use tracing_appender::non_blocking::WorkerGuard;
+use tracing_subscriber::{fmt, prelude::*, EnvFilter, Layer, Registry};
 
 pub struct TracingGuard {
     pub _file_guard: Option<WorkerGuard>,

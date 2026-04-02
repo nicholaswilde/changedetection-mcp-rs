@@ -1,7 +1,7 @@
 mod common;
 
-use common::MockApp;
 use changedetection_mcp_rs::api::ApiError;
+use common::MockApp;
 
 #[tokio::test]
 async fn test_api_401_unauthorized() {
@@ -46,7 +46,9 @@ async fn test_api_500_internal_error() {
 
     let result = app.client.list_watches(None).await;
     match result {
-        Err(ApiError::Http(e)) => assert_eq!(e.status(), Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)),
+        Err(ApiError::Http(e)) => {
+            assert_eq!(e.status(), Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR))
+        }
         _ => panic!("Expected HTTP 500 Internal Error, got {:?}", result),
     }
 }

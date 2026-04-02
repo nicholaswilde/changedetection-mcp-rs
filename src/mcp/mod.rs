@@ -1,12 +1,7 @@
 use crate::api::Client;
 use crate::cli::Transport;
 use async_trait::async_trait;
-use axum::{
-    extract::{State},
-    http::StatusCode,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use mcp_sdk_rs::error::{Error, ErrorCode};
 use mcp_sdk_rs::server::{Server, ServerHandler};
 use mcp_sdk_rs::transport::stdio::StdioTransport;
@@ -113,7 +108,7 @@ pub struct GetWatchDiffArgs {
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
-    
+
     ToolSchema {
         properties: schema_val.get("properties").cloned(),
         required: schema_val.get("required").and_then(|v| {
@@ -201,9 +196,9 @@ impl McpServer {
 
     async fn run_http(self, host: &str, port: u16) -> anyhow::Result<()> {
         tracing::info!("Starting MCP server via HTTP on {}:{}...", host, port);
-        
+
         let state = Arc::new(self);
-        
+
         let app = Router::new()
             .route("/", post(http_rpc_handler))
             .layer(tower_http::trace::TraceLayer::new_for_http())
@@ -211,7 +206,7 @@ impl McpServer {
 
         let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port)).await?;
         axum::serve(listener, app).await?;
-        
+
         Ok(())
     }
 }
@@ -292,13 +287,14 @@ impl ServerHandler for McpServer {
     ) -> Result<serde_json::Value, Error> {
         let request_id = uuid::Uuid::new_v4().to_string();
         let span = tracing::info_span!("mcp_request", %method, %request_id);
-        
+
         async move {
             let params_tokens = params.as_ref().map_or(0, |p| p.to_string().len());
-            
+
             let result = match method {
                 "list_watches" => {
-                    let args: ListWatchesArgs = serde_json::from_value(params.unwrap_or(serde_json::json!({})))?;
+                    let args: ListWatchesArgs =
+                        serde_json::from_value(params.unwrap_or(serde_json::json!({})))?;
                     let watches = self
                         .client
                         .list_watches(args.tag.as_deref())
@@ -307,20 +303,21 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(watches)?)
                 }
                 "search_watches" => {
-                    let args: SearchWatchesArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
-                    let watches = self
-                        .client
-                        .search_watches(&args.query)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let args: SearchWatchesArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let watches =
+                        self.client.search_watches(&args.query).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(watches)?)
                 }
                 "get_watch_details" => {
-                    let args: GetWatchDetailsArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
+                    let args: GetWatchDetailsArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
                     let watch = self
                         .client
                         .get_watch_details(&args.uuid)
@@ -329,9 +326,10 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(watch)?)
                 }
                 "create_watch" => {
-                    let args: CreateWatchArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
+                    let args: CreateWatchArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
                     let result = self
                         .client
                         .create_watch(&args.url, args.tag.as_deref())
@@ -340,16 +338,17 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(result)?)
                 }
                 "update_watch" => {
-                    let mut payload: serde_json::Value = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
-                    
+                    let mut payload: serde_json::Value =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+
                     let uuid = payload
                         .get("uuid")
                         .and_then(|v| v.as_str())
                         .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing uuid"))?
                         .to_string();
-                    
+
                     // Remove uuid from payload to avoid sending it in the body
                     if let Some(map) = payload.as_object_mut() {
                         map.remove("uuid");
@@ -363,50 +362,49 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(result)?)
                 }
                 "delete_watch" => {
-                    let args: DeleteWatchArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
-                    let result = self
-                        .client
-                        .delete_watch(&args.uuid)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let args: DeleteWatchArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result =
+                        self.client.delete_watch(&args.uuid).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "list_tags" => {
-                    let result = self
-                        .client
-                        .list_tags()
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let result =
+                        self.client.list_tags().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "create_tag" => {
                     let args: CreateTagArgs = serde_json::from_value(params.ok_or_else(|| {
                         Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
                     })?)?;
-                    let result = self
-                        .client
-                        .create_tag(&args.title)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let result =
+                        self.client.create_tag(&args.title).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "get_tag_details" => {
-                    let args: GetTagDetailsArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
-                    let result = self
-                        .client
-                        .get_tag_details(&args.uuid)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let args: GetTagDetailsArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result =
+                        self.client.get_tag_details(&args.uuid).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "update_tag" => {
-                    let mut payload: serde_json::Value = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
+                    let mut payload: serde_json::Value =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
                     let uuid = payload
                         .get("uuid")
                         .and_then(|v| v.as_str())
@@ -415,39 +413,38 @@ impl ServerHandler for McpServer {
                     if let Some(map) = payload.as_object_mut() {
                         map.remove("uuid");
                     }
-                    let result = self
-                        .client
-                        .update_tag(&uuid, payload)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let result =
+                        self.client.update_tag(&uuid, payload).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "delete_tag" => {
                     let args: DeleteTagArgs = serde_json::from_value(params.ok_or_else(|| {
                         Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
                     })?)?;
-                    let result = self
-                        .client
-                        .delete_tag(&args.uuid)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let result =
+                        self.client.delete_tag(&args.uuid).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "trigger_check" => {
-                    let args: TriggerCheckArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
-                    let result = self
-                        .client
-                        .trigger_check(&args.uuid)
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let args: TriggerCheckArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result =
+                        self.client.trigger_check(&args.uuid).await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(result)?)
                 }
                 "get_watch_history" => {
-                    let args: GetWatchHistoryArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
+                    let args: GetWatchHistoryArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
                     let result = self
                         .client
                         .get_watch_history(&args.uuid)
@@ -456,9 +453,10 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(result)?)
                 }
                 "get_watch_diff" => {
-                    let args: GetWatchDiffArgs = serde_json::from_value(params.ok_or_else(|| {
-                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
-                    })?)?;
+                    let args: GetWatchDiffArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
                     let result = self
                         .client
                         .get_watch_diff(&args.uuid, &args.from_timestamp, &args.to_timestamp)
@@ -542,13 +540,15 @@ impl ServerHandler for McpServer {
                         },
                         Tool {
                             name: "get_watch_history".to_string(),
-                            description: "Get the history of snapshots for a specific watch".to_string(),
+                            description: "Get the history of snapshots for a specific watch"
+                                .to_string(),
                             input_schema: Some(get_schema::<GetWatchHistoryArgs>()),
                             annotations: None,
                         },
                         Tool {
                             name: "get_watch_diff".to_string(),
-                            description: "Get the difference between two snapshots of a watch".to_string(),
+                            description: "Get the difference between two snapshots of a watch"
+                                .to_string(),
                             input_schema: Some(get_schema::<GetWatchDiffArgs>()),
                             annotations: None,
                         },
@@ -569,6 +569,8 @@ impl ServerHandler for McpServer {
             );
 
             result
-        }.instrument(span).await
+        }
+        .instrument(span)
+        .await
     }
 }

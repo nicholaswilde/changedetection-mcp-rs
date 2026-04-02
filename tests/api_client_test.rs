@@ -16,7 +16,8 @@ async fn test_list_watches() {
         }
     });
 
-    app.mock_get("/api/v1/watch", 200, Some(response_body)).await;
+    app.mock_get("/api/v1/watch", 200, Some(response_body))
+        .await;
 
     let watches = app.client.list_watches(None).await.unwrap();
     assert_eq!(watches.len(), 1);
@@ -32,7 +33,8 @@ async fn test_get_watch_details() {
         "title": "Example"
     });
 
-    app.mock_get(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
+    app.mock_get(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body))
+        .await;
 
     let watch = app.client.get_watch_details(uuid).await.unwrap();
     assert_eq!(watch.url, "https://example.com");
@@ -47,9 +49,11 @@ async fn test_create_watch() {
         "uuid": "watch_id_1"
     });
 
-    app.mock_post("/api/v1/watch", 201, Some(response_body)).await;
+    app.mock_post("/api/v1/watch", 201, Some(response_body))
+        .await;
 
-    let result = app.client
+    let result = app
+        .client
         .create_watch("https://example.com", None)
         .await
         .unwrap();
@@ -66,7 +70,8 @@ async fn test_delete_watch() {
         "status": "success"
     });
 
-    app.mock_delete(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
+    app.mock_delete(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body))
+        .await;
 
     let result = app.client.delete_watch(uuid).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
@@ -81,7 +86,12 @@ async fn test_trigger_check() {
         "status": "success"
     });
 
-    app.mock_get(&format!("/api/v1/watch/{}/recheck", uuid), 200, Some(response_body)).await;
+    app.mock_get(
+        &format!("/api/v1/watch/{}/recheck", uuid),
+        200,
+        Some(response_body),
+    )
+    .await;
 
     let result = app.client.trigger_check(uuid).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
@@ -96,7 +106,12 @@ async fn test_get_watch_history() {
         "1234567891": "Snapshot 2"
     });
 
-    app.mock_get(&format!("/api/v1/watch/{}/history", uuid), 200, Some(response_body)).await;
+    app.mock_get(
+        &format!("/api/v1/watch/{}/history", uuid),
+        200,
+        Some(response_body),
+    )
+    .await;
 
     let history = app.client.get_watch_history(uuid).await.unwrap();
     assert_eq!(history.len(), 2);
@@ -111,7 +126,12 @@ async fn test_get_watch_diff() {
     let to = "1234567891";
     let response_body = "Difference between snapshots";
 
-    app.mock_get_text(&format!("/api/v1/watch/{}/difference/{}/{}", uuid, from, to), 200, response_body).await;
+    app.mock_get_text(
+        &format!("/api/v1/watch/{}/difference/{}/{}", uuid, from, to),
+        200,
+        response_body,
+    )
+    .await;
 
     let diff = app.client.get_watch_diff(uuid, from, to).await.unwrap();
     assert_eq!(diff, response_body);
@@ -130,12 +150,10 @@ async fn test_update_watch() {
         "status": "success"
     });
 
-    app.mock_put(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
+    app.mock_put(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body))
+        .await;
 
-    let result = app.client
-        .update_watch(uuid, payload)
-        .await
-        .unwrap();
+    let result = app.client.update_watch(uuid, payload).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
@@ -190,10 +208,7 @@ async fn test_create_tag() {
 
     app.mock_post("/api/v1/tag", 201, Some(response_body)).await;
 
-    let result = app.client
-        .create_tag("New Tag")
-        .await
-        .unwrap();
+    let result = app.client.create_tag("New Tag").await.unwrap();
     assert_eq!(result, "tag_id_1");
 }
 
@@ -207,7 +222,8 @@ async fn test_get_tag_details() {
         "title": "Tag 1"
     });
 
-    app.mock_get(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body)).await;
+    app.mock_get(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body))
+        .await;
 
     let tag = app.client.get_tag_details(uuid).await.unwrap();
     assert_eq!(tag["title"], "Tag 1");
@@ -225,12 +241,10 @@ async fn test_update_tag() {
         "status": "success"
     });
 
-    app.mock_put(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body)).await;
+    app.mock_put(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body))
+        .await;
 
-    let result = app.client
-        .update_tag(uuid, payload)
-        .await
-        .unwrap();
+    let result = app.client.update_tag(uuid, payload).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
@@ -243,7 +257,8 @@ async fn test_delete_tag() {
         "status": "success"
     });
 
-    app.mock_delete(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body)).await;
+    app.mock_delete(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body))
+        .await;
 
     let result = app.client.delete_tag(uuid).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");

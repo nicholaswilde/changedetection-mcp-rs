@@ -1,6 +1,5 @@
-use changedetection_mcp_rs::api::Client;
 use schemars::{schema_for, JsonSchema};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 #[derive(JsonSchema, Deserialize, Debug)]

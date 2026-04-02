@@ -25,13 +25,16 @@ async fn test_mcp_list_watches_with_tag() {
         .await;
 
     let params = json!({ "tag": "test" });
-    let result = app.mcp.handle_method("list_watches", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("list_watches", Some(params))
+        .await
+        .unwrap();
+
     let watches: serde_json::Value = serde_json::from_value(result).unwrap();
     assert!(watches.get("watch_id_1").is_some());
     assert_eq!(watches["watch_id_1"]["url"], "https://example.com");
 }
-
 
 #[tokio::test]
 async fn test_mcp_list_watches() {
@@ -44,10 +47,11 @@ async fn test_mcp_list_watches() {
         }
     });
 
-    app.mock_get("/api/v1/watch", 200, Some(response_body)).await;
+    app.mock_get("/api/v1/watch", 200, Some(response_body))
+        .await;
 
     let result = app.mcp.handle_method("list_watches", None).await.unwrap();
-    
+
     let watches: serde_json::Value = serde_json::from_value(result).unwrap();
     assert!(watches.get("watch_id_1").is_some());
     assert_eq!(watches["watch_id_1"]["url"], "https://example.com");
@@ -58,10 +62,10 @@ async fn test_mcp_tools_list() {
     let app = MockApp::new().await;
 
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
-    
+
     let tools = result.get("tools").unwrap().as_array().unwrap();
     assert_eq!(tools.len(), 14);
-    
+
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"list_watches"));
     assert!(tool_names.contains(&"get_watch_history"));
@@ -86,10 +90,11 @@ async fn test_mcp_list_tags() {
         }
     ]);
 
-    app.mock_get("/api/v1/tags", 200, Some(response_body.clone())).await;
+    app.mock_get("/api/v1/tags", 200, Some(response_body.clone()))
+        .await;
 
     let result = app.mcp.handle_method("list_tags", None).await.unwrap();
-    
+
     assert_eq!(result, response_body);
 }
 
@@ -99,11 +104,16 @@ async fn test_mcp_create_tag() {
 
     let response_body = json!("tag_id_1");
 
-    app.mock_post("/api/v1/tag", 201, Some(response_body.clone())).await;
+    app.mock_post("/api/v1/tag", 201, Some(response_body.clone()))
+        .await;
 
     let params = json!({ "title": "New Tag" });
-    let result = app.mcp.handle_method("create_tag", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("create_tag", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, response_body);
 }
 
@@ -117,11 +127,20 @@ async fn test_mcp_get_tag_details() {
         "title": "Tag 1"
     });
 
-    app.mock_get(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body.clone())).await;
+    app.mock_get(
+        &format!("/api/v1/tag/{}", uuid),
+        200,
+        Some(response_body.clone()),
+    )
+    .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("get_tag_details", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("get_tag_details", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, response_body);
 }
 
@@ -138,10 +157,19 @@ async fn test_mcp_update_tag() {
         "status": "success"
     });
 
-    app.mock_put(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body.clone())).await;
+    app.mock_put(
+        &format!("/api/v1/tag/{}", uuid),
+        200,
+        Some(response_body.clone()),
+    )
+    .await;
 
-    let result = app.mcp.handle_method("update_tag", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("update_tag", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, response_body);
 }
 
@@ -154,11 +182,20 @@ async fn test_mcp_delete_tag() {
         "status": "success"
     });
 
-    app.mock_delete(&format!("/api/v1/tag/{}", uuid), 200, Some(response_body.clone())).await;
+    app.mock_delete(
+        &format!("/api/v1/tag/{}", uuid),
+        200,
+        Some(response_body.clone()),
+    )
+    .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("delete_tag", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("delete_tag", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, response_body);
 }
 
@@ -182,8 +219,12 @@ async fn test_mcp_search_watches() {
         .await;
 
     let params = json!({ "query": query });
-    let result = app.mcp.handle_method("search_watches", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("search_watches", Some(params))
+        .await
+        .unwrap();
+
     let watches: serde_json::Value = serde_json::from_value(result).unwrap();
     assert!(watches.get("watch_id_1").is_some());
 }
@@ -202,10 +243,19 @@ async fn test_mcp_update_watch() {
         "status": "success"
     });
 
-    app.mock_put(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body.clone())).await;
+    app.mock_put(
+        &format!("/api/v1/watch/{}", uuid),
+        200,
+        Some(response_body.clone()),
+    )
+    .await;
 
-    let result = app.mcp.handle_method("update_watch", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("update_watch", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, response_body);
 }
 
@@ -219,11 +269,16 @@ async fn test_mcp_get_watch_details() {
         "title": "Example"
     });
 
-    app.mock_get(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
+    app.mock_get(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body))
+        .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("get_watch_details", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("get_watch_details", Some(params))
+        .await
+        .unwrap();
+
     let watch: serde_json::Value = serde_json::from_value(result).unwrap();
     assert_eq!(watch["url"], "https://example.com");
 }
@@ -237,11 +292,16 @@ async fn test_mcp_create_watch() {
         "uuid": "watch_id_1"
     });
 
-    app.mock_post("/api/v1/watch", 201, Some(response_body)).await;
+    app.mock_post("/api/v1/watch", 201, Some(response_body))
+        .await;
 
     let params = json!({ "url": "https://example.com" });
-    let result = app.mcp.handle_method("create_watch", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("create_watch", Some(params))
+        .await
+        .unwrap();
+
     let res: serde_json::Value = serde_json::from_value(result).unwrap();
     assert_eq!(res["status"], "success");
     assert_eq!(res["uuid"], "watch_id_1");
@@ -256,11 +316,16 @@ async fn test_mcp_delete_watch() {
         "status": "success"
     });
 
-    app.mock_delete(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
+    app.mock_delete(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body))
+        .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("delete_watch", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("delete_watch", Some(params))
+        .await
+        .unwrap();
+
     let res: serde_json::Value = serde_json::from_value(result).unwrap();
     assert_eq!(res["status"], "success");
 }
@@ -274,11 +339,20 @@ async fn test_mcp_trigger_check() {
         "status": "success"
     });
 
-    app.mock_get(&format!("/api/v1/watch/{}/recheck", uuid), 200, Some(response_body)).await;
+    app.mock_get(
+        &format!("/api/v1/watch/{}/recheck", uuid),
+        200,
+        Some(response_body),
+    )
+    .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("trigger_check", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("trigger_check", Some(params))
+        .await
+        .unwrap();
+
     let res: serde_json::Value = serde_json::from_value(result).unwrap();
     assert_eq!(res["status"], "success");
 }
@@ -292,11 +366,20 @@ async fn test_mcp_get_watch_history() {
         "1234567891": "Snapshot 2"
     });
 
-    app.mock_get(&format!("/api/v1/watch/{}/history", uuid), 200, Some(response_body.clone())).await;
+    app.mock_get(
+        &format!("/api/v1/watch/{}/history", uuid),
+        200,
+        Some(response_body.clone()),
+    )
+    .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("get_watch_history", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("get_watch_history", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, response_body);
 }
 
@@ -308,15 +391,24 @@ async fn test_mcp_get_watch_diff() {
     let to = "1234567891";
     let response_body = "Difference between snapshots";
 
-    app.mock_get_text(&format!("/api/v1/watch/{}/difference/{}/{}", uuid, from, to), 200, response_body).await;
+    app.mock_get_text(
+        &format!("/api/v1/watch/{}/difference/{}/{}", uuid, from, to),
+        200,
+        response_body,
+    )
+    .await;
 
-    let params = json!({ 
+    let params = json!({
         "uuid": uuid,
         "from_timestamp": from,
         "to_timestamp": to
     });
-    let result = app.mcp.handle_method("get_watch_diff", Some(params)).await.unwrap();
-    
+    let result = app
+        .mcp
+        .handle_method("get_watch_diff", Some(params))
+        .await
+        .unwrap();
+
     assert_eq!(result, json!(response_body));
 }
 
