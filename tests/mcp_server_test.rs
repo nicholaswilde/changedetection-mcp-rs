@@ -64,9 +64,10 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 15);
+    assert_eq!(tools.len(), 16);
 
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
+    assert!(tool_names.contains(&"get_full_spec"));
     assert!(tool_names.contains(&"list_watches"));
     assert!(tool_names.contains(&"get_watch_history"));
     assert!(tool_names.contains(&"get_watch_diff"));
@@ -95,7 +96,11 @@ async fn test_mcp_get_system_info() {
     app.mock_get("/api/v1/systeminfo", 200, Some(response_body.clone()))
         .await;
 
-    let result = app.mcp.handle_method("get_system_info", None).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("get_system_info", None)
+        .await
+        .unwrap();
 
     assert_eq!(result, response_body);
 }
@@ -451,4 +456,18 @@ async fn test_mcp_api_error() {
 
     let result = app.mcp.handle_method("list_watches", None).await;
     assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn test_mcp_get_full_spec() {
+    let app = MockApp::new().await;
+
+    let response_body = "openapi: 3.0.0";
+
+    app.mock_get_text("/api/v1/full-spec", 200, response_body)
+        .await;
+
+    let result = app.mcp.handle_method("get_full_spec", None).await.unwrap();
+
+    assert_eq!(result, json!(response_body));
 }

@@ -472,18 +472,31 @@ impl ServerHandler for McpServer {
                     Ok(serde_json::to_value(result)?)
                 }
                 "get_system_info" => {
-                    let info = self
-                        .client
-                        .get_system_info()
-                        .await
-                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let info =
+                        self.client.get_system_info().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
                     Ok(serde_json::to_value(info)?)
+                }
+                "get_full_spec" => {
+                    let spec =
+                        self.client.get_full_spec().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                    Ok(serde_json::to_value(spec)?)
                 }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
                             name: "get_system_info".to_string(),
                             description: "Retrieve ChangeDetection.io system status and version"
+                                .to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_full_spec".to_string(),
+                            description: "Retrieve the full OpenAPI specification of the ChangeDetection.io instance"
                                 .to_string(),
                             input_schema: None,
                             annotations: None,
