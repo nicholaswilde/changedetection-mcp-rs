@@ -9,11 +9,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Tag Management
-- **Track Folder:** [./tracks/tag_management_20260331/](./tracks/tag_management_20260331/)
-
----
-
 ## [ ] Track: System Info
 - **Track Folder:** [./tracks/system_info_20260331/](./tracks/system_info_20260331/)
 
