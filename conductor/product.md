@@ -22,6 +22,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Delete Watch:** Remove watches that are no longer needed.
 - **Trigger Re-check:** Manually force a check for changes on a specific watch.
 - **Get Snapshots:** Retrieve historical snapshots of tracked pages.
+- **Watch Diffs & History:** Retrieve historical snapshots and compare changes between them.
 
 ## Design Principles
 - **Rust-powered Efficiency:** Leverage Rust's performance and safety for a reliable server.
