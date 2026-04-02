@@ -60,12 +60,34 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
     
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 7);
+    assert_eq!(tools.len(), 8);
     
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"list_watches"));
     assert!(tool_names.contains(&"get_watch_history"));
     assert!(tool_names.contains(&"get_watch_diff"));
+    assert!(tool_names.contains(&"update_watch"));
+}
+
+#[tokio::test]
+async fn test_mcp_update_watch() {
+    let app = MockApp::new().await;
+
+    let uuid = "watch_id_1";
+    let params = json!({
+        "uuid": uuid,
+        "url": "https://new-example.com",
+        "title": "New Example"
+    });
+    let response_body = json!({
+        "status": "success"
+    });
+
+    app.mock_put(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body.clone())).await;
+
+    let result = app.mcp.handle_method("update_watch", Some(params)).await.unwrap();
+    
+    assert_eq!(result, response_body);
 }
 
 #[tokio::test]

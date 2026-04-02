@@ -39,6 +39,18 @@ pub struct CreateWatchArgs {
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
+pub struct UpdateWatchArgs {
+    /// The UUID of the watch to update
+    pub uuid: String,
+    /// The URL to watch
+    pub url: Option<String>,
+    /// Optional title for the watch
+    pub title: Option<String>,
+    /// Optional tag to assign to the watch
+    pub tag: Option<String>,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
 pub struct DeleteWatchArgs {
     /// The UUID of the watch to delete
     pub uuid: String,
@@ -284,6 +296,29 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "update_watch" => {
+                    let mut payload: serde_json::Value = serde_json::from_value(params.ok_or_else(|| {
+                        Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                    })?)?;
+                    
+                    let uuid = payload
+                        .get("uuid")
+                        .and_then(|v| v.as_str())
+                        .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing uuid"))?
+                        .to_string();
+                    
+                    // Remove uuid from payload to avoid sending it in the body
+                    if let Some(map) = payload.as_object_mut() {
+                        map.remove("uuid");
+                    }
+
+                    let result = self
+                        .client
+                        .update_watch(&uuid, payload)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "delete_watch" => {
                     let args: DeleteWatchArgs = serde_json::from_value(params.ok_or_else(|| {
                         Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
@@ -346,6 +381,12 @@ impl ServerHandler for McpServer {
                             name: "create_watch".to_string(),
                             description: "Create a new watch".to_string(),
                             input_schema: Some(get_schema::<CreateWatchArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "update_watch".to_string(),
+                            description: "Update a specific watch".to_string(),
+                            input_schema: Some(get_schema::<UpdateWatchArgs>()),
                             annotations: None,
                         },
                         Tool {
