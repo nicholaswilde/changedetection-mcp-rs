@@ -4,7 +4,7 @@
 1. **[x] API Implementation**: f35b089
    - Update `src/api/mod.rs`.
    - Add `get_full_spec` method returning `Result<String, ApiError>`.
-2. **MCP Integration**:
+2. **[x] MCP Integration**: e086c8d
    - Update `src/mcp/mod.rs`.
    - Add `get_full_spec` to `list_tools`.
    - Add handling for `get_full_spec` in `handle_method`.
