@@ -171,9 +171,8 @@ impl Client {
             return Ok(serde_json::json!({"status": "success"}));
         }
 
-        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            serde_json::json!({"status": text})
-        });
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
 
         Ok(result)
     }
@@ -186,15 +185,14 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        
+
         let text = response.text().await?;
         if text.trim().is_empty() {
             return Ok(serde_json::json!({"status": "success"}));
         }
-        
-        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            serde_json::json!({"status": text})
-        });
+
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
         Ok(result)
     }
 
@@ -206,15 +204,14 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        
+
         let text = response.text().await?;
         if text.trim().is_empty() {
             return Ok(serde_json::json!({"status": "success"}));
         }
 
-        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            serde_json::json!({"status": text})
-        });
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
         Ok(result)
     }
 
@@ -322,9 +319,8 @@ impl Client {
         if text.trim().is_empty() {
             return Ok(serde_json::json!({"status": "success"}));
         }
-        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            serde_json::json!({"status": text})
-        });
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
         Ok(result)
     }
 
@@ -340,9 +336,20 @@ impl Client {
         if text.trim().is_empty() {
             return Ok(serde_json::json!({"status": "success"}));
         }
-        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
-            serde_json::json!({"status": text})
-        });
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
         Ok(result)
+    }
+
+    pub async fn get_full_spec(&self) -> Result<String, ApiError> {
+        let url = format!("{}/api/v1/full-spec", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let spec = response.text().await?;
+        Ok(spec)
     }
 }
