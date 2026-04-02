@@ -107,6 +107,23 @@ impl Client {
         Ok(result)
     }
 
+    pub async fn update_watch(
+        &self,
+        uuid: &str,
+        payload: serde_json::Value,
+    ) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
+        let response = self
+            .http_client
+            .put(&url)
+            .json(&payload)
+            .send()
+            .await?
+            .error_for_status()?;
+        let result = response.json::<HashMap<String, String>>().await?;
+        Ok(result)
+    }
+
     pub async fn trigger_check(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/watch/{}/recheck", self.base_url, uuid);
         let response = self.http_client.get(&url).send().await?.error_for_status()?;

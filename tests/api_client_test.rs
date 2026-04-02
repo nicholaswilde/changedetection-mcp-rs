@@ -114,3 +114,25 @@ async fn test_get_watch_diff() {
     let diff = app.client.get_watch_diff(uuid, from, to).await.unwrap();
     assert_eq!(diff, response_body);
 }
+
+#[tokio::test]
+async fn test_update_watch() {
+    let app = MockApp::new().await;
+
+    let uuid = "watch_id_1";
+    let payload = json!({
+        "url": "https://new-example.com",
+        "title": "New Example"
+    });
+    let response_body = json!({
+        "status": "success"
+    });
+
+    app.mock_put(&format!("/api/v1/watch/{}", uuid), 200, Some(response_body)).await;
+
+    let result = app.client
+        .update_watch(uuid, payload)
+        .await
+        .unwrap();
+    assert_eq!(result.get("status").unwrap(), "success");
+}
