@@ -6,9 +6,9 @@
 2. [x] **API Client Tests:** (df5a90d)
    - Write tests in `tests/api_client_test.rs` using `wiremock`.
 
-3. [ ] **MCP Tool Definitions:**
+3. [x] **MCP Tool Definitions:** (2cda2b4)
    - Add `search_watches` tool and schema.
    - Add handler to `src/mcp/mod.rs`.
 
-4. [ ] **MCP Server Tests:**
+4. [x] **MCP Server Tests:** (2cda2b4)
    - Add integration tests for the `search_watches` MCP tool.
