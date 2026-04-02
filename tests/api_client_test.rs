@@ -135,7 +135,7 @@ async fn test_get_watch_diff() {
     )
     .await;
 
-    let diff = app.client.get_watch_diff(uuid, from, to).await.unwrap();
+    let diff = app.client.get_watch_diff(uuid, from, to, None).await.unwrap();
     assert_eq!(diff, response_body);
 }
 
@@ -264,4 +264,25 @@ async fn test_delete_tag() {
 
     let result = app.client.delete_tag(uuid).await.unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
+}
+
+#[tokio::test]
+async fn test_get_system_info() {
+    let app = MockApp::new().await;
+
+    let response_body = json!({
+        "watch_count": 10,
+        "queue_size": 2,
+        "overdue_watches": ["watch-1"],
+        "uptime": 3600.0,
+        "version": "0.45.2"
+    });
+
+    app.mock_get("/api/v1/systeminfo", 200, Some(response_body))
+        .await;
+
+    let info = app.client.get_system_info().await.unwrap();
+    assert_eq!(info.watch_count, 10);
+    assert_eq!(info.version, "0.45.2");
+    assert_eq!(info.overdue_watches.len(), 1);
 }
