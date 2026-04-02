@@ -171,7 +171,8 @@ impl Client {
     pub async fn list_tags(&self) -> Result<Vec<serde_json::Value>, ApiError> {
         let url = format!("{}/api/v1/tags", self.base_url);
         let response = self.http_client.get(&url).send().await?.error_for_status()?;
-        let tags = response.json::<Vec<serde_json::Value>>().await?;
+        let text = response.text().await?;
+        let tags = serde_json::from_str(&text).unwrap_or_else(|_| Vec::new());
         Ok(tags)
     }
 
@@ -187,14 +188,24 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        let result = response.json::<String>().await?;
+        let text = response.text().await?;
+        
+        // The API might return a UUID string or a JSON object with a uuid field
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
+            if let Some(uuid) = val.get("uuid").and_then(|v| v.as_str()) {
+                return Ok(uuid.to_string());
+            }
+        }
+        
+        let result = text.trim_matches('"').trim().to_string();
         Ok(result)
     }
 
     pub async fn get_tag_details(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
         let response = self.http_client.get(&url).send().await?.error_for_status()?;
-        let tag = response.json::<serde_json::Value>().await?;
+        let text = response.text().await?;
+        let tag = serde_json::from_str(&text)?;
         Ok(tag)
     }
 
@@ -217,7 +228,7 @@ impl Client {
         }
         let result = serde_json::from_str(&text).unwrap_or_else(|_| {
             let mut map = HashMap::new();
-            map.insert("status".to_string(), "success".to_string());
+            map.insert("status".to_string(), text);
             map
         });
         Ok(result)
@@ -226,7 +237,15 @@ impl Client {
     pub async fn delete_tag(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/tag/{}", self.base_url, uuid);
         let response = self.http_client.delete(&url).send().await?.error_for_status()?;
-        let result = response.json::<HashMap<String, String>>().await?;
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(HashMap::new());
+        }
+        let result = serde_json::from_str(&text).unwrap_or_else(|_| {
+            let mut map = HashMap::new();
+            map.insert("status".to_string(), text);
+            map
+        });
         Ok(result)
     }
 }
