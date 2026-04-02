@@ -154,6 +154,7 @@ async fn test_search_watches() {
     Mock::given(method("GET"))
         .and(path("/api/v1/search"))
         .and(query_param("q", query))
+        .and(query_param("partial", "1"))
         .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
         .mount(&app.server)
         .await;

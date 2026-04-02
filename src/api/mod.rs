@@ -77,7 +77,7 @@ impl Client {
     }
 
     pub async fn search_watches(&self, query: &str) -> Result<HashMap<String, Watch>, ApiError> {
-        let url = format!("{}/api/v1/search?q={}", self.base_url, query);
+        let url = format!("{}/api/v1/search?q={}&partial=1", self.base_url, query);
         let response = self.http_client.get(&url).send().await?.error_for_status()?;
         let watches = response.json::<HashMap<String, Watch>>().await?;
         Ok(watches)
