@@ -1,20 +1,21 @@
-# Specification: Snapshot & History Management
+# Specification: Snapshot & History Management (Refined)
 
 ## Goal
-To provide tools for managing historical data of watches, including deletion of snapshots, triggering re-indexing, and retrieving technical metadata for specific snapshots.
+To provide tools for analyzing and managing watch history, focusing on metadata retrieval, bulk history listing, and retention management.
 
 ## Requirements
-- **`delete_snapshot` Tool**:
-    - Input: `uuid`, `timestamp`.
-    - Action: Delete a specific historical snapshot.
-- **`reindex_watch` Tool**:
-    - Input: `uuid`.
-    - Action: Trigger a full re-indexing of historical data for the watch.
 - **`get_snapshot_metadata` Tool**:
     - Input: `uuid`, `timestamp`.
-    - Output: Technical metadata such as HTTP status, response time, and headers.
+    - Output: Technical metadata such as HTTP status, response time, and content length for that specific snapshot.
+- **`list_all_history` Tool**:
+    - Input: `tag` (optional).
+    - Action: Retrieve the history list for all watches, or all watches matching a specific tag.
+    - Output: A map of watch UUIDs to their history lists.
+- **`set_history_limit` Tool**:
+    - Input: `uuid`, `limit` (integer).
+    - Action: Update the `history_snapshot_max_length` field for the specified watch to manage its history size.
 
 ## Success Criteria
-- Tools are implemented in `src/api/mod.rs` and `src/mcp/mod.rs`.
-- Integration tests confirm that snapshots are correctly deleted and metadata is accurate.
-- LLMs can manage and query watch history details more precisely.
+- Tools are successfully implemented in `src/api/mod.rs` and exposed in `src/mcp/mod.rs`.
+- Integration tests verify accurate metadata retrieval and limit setting.
+- LLMs can effectively audit history sizes and technical snapshot performance.

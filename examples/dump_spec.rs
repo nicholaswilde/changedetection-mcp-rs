@@ -1,0 +1,1 @@
+use changedetection_mcp_rs::api::Client; use std::env; #[tokio::main] async fn main() { dotenv::dotenv().ok(); let base_url = env::var("CHANGEDETECTION_BASE_URL").unwrap(); let api_key = env::var("CHANGEDETECTION_API_KEY").unwrap(); let client = Client::new(base_url, api_key); let spec = client.get_full_spec().await.unwrap(); std::fs::write("full_spec.yaml", spec).unwrap(); }
