@@ -15,19 +15,19 @@
 - [x] **Task: Implement Consolidated Handler** d9d3a27
     - [ ] Refactor `McpServer::handle_method` to dispatch the new category tools to the existing `Client` methods.
 - [x] **Task: Conductor - User Manual Verification 'Phase 2: Core Implementation' (Protocol in workflow.md)** d9d3a27
-
-## Phase 3: Testing & Migration
+## Phase 3: Testing & Migration [checkpoint: 27f4ed4]
 - [x] **Task: Update Unit Tests** 8626c81
     - [ ] Update tests in `tests/mcp_server_test.rs` and other MCP-related test files to use the new category tools.
 - [x] **Task: Add Optimization Tests** 58e55f8
     - [ ] Write new tests verifying that pagination and field selection correctly reduce the response size.
 - [x] **Task: Deprecate/Remove Old Tools** 5a234ae
     - [ ] Remove the individual tool definitions and handlers from `src/mcp/mod.rs`.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 3: Testing & Migration' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 3: Testing & Migration' (Protocol in workflow.md)** 27f4ed4
 
 ## Phase 4: Final Polish & Documentation
-- [ ] **Task: Optimize Descriptions**
-    - [ ] Perform a final audit of all tool and parameter descriptions to ensure they are as token-efficient as possible.
+- [~] **Task: Optimize Descriptions**
+    - [ ] Refine the descriptions of the category tools and their `action` enums to be more descriptive for LLMs.
 - [ ] **Task: Update Project Documentation**
+...
     - [ ] Update any documentation that references the individual MCP tools.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 4: Final Polish & Documentation' (Protocol in workflow.md)**
