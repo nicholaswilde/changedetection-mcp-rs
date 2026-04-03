@@ -33,6 +33,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Get Snapshots:** Retrieve historical snapshots of tracked pages.
 - **Processor Discovery:** List available change detection processors (e.g., restock_diff, text_json_diff).
 - **Advanced Snapshot Analysis:** Tools for retrieving technical metadata (content-length, content-type) for snapshots and bulk-listing history across multiple watches.
+- **Specialized Filtering:** High-intent tools for identifying problematic watches (filtering by error state) or auditing instance configurations (filtering by change detection processor).
 - **Retention Management:** Dedicated tools to manage watch history size and retention limits.
 
 ## Design Principles
