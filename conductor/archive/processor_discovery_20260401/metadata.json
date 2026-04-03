@@ -1,0 +1,8 @@
+{
+  "id": "processor_discovery_20260401",
+  "name": "Processor Discovery",
+  "description": "Add tool to list available processors/filters in ChangeDetection.io",
+  "status": "pending",
+  "priority": "low",
+  "tags": ["feature", "api", "mcp"]
+}
