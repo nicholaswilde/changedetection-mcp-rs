@@ -9,8 +9,9 @@ This plan follows the project's TDD-based workflow.
 4. [x] Verify tests pass in `tests/api_state_management_test.rs`. [815b968]
 
 ## Phase 2: MCP Tool Integration
-5. [ ] Add `PauseWatchArgs` (and others as needed) to `src/mcp/mod.rs`. [ ]
-6. [ ] Add all four tools to the `handle_method` match block in `src/mcp/mod.rs`. [ ]
-7. [ ] Add all four tools to the `tools/list` response in `src/mcp/mod.rs`. [ ]
-8. [ ] Create integration tests in `tests/mcp_state_management_test.rs`. [ ]
-9. [ ] Verify all tests pass. [ ]
+5. [x] Add `PauseWatchArgs` (and others as needed) to `src/mcp/mod.rs`. [edf68e7]
+6. [x] Add all four tools to the `handle_method` match block in `src/mcp/mod.rs`. [edf68e7]
+7. [x] Add all four tools to the `tools/list` response in `src/mcp/mod.rs`. [edf68e7]
+8. [x] Create integration tests in `tests/mcp_state_management_test.rs`. [edf68e7]
+9. [x] Verify all tests pass. [edf68e7]
+
