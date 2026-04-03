@@ -39,6 +39,6 @@ async fn test_mcp_tools_list_snapshot_content() {
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
-    
+
     assert!(tool_names.contains(&"get_snapshot_content"));
 }

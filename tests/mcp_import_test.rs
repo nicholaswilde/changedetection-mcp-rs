@@ -9,8 +9,14 @@ async fn test_mcp_import_watches() {
     let app = MockApp::new().await;
     let response_body = json!(["uuid-1", "uuid-2"]);
 
-    app.mock_post_with_query("/api/v1/import", "tag", "imported", 200, Some(response_body.clone()))
-        .await;
+    app.mock_post_with_query(
+        "/api/v1/import",
+        "tag",
+        "imported",
+        200,
+        Some(response_body.clone()),
+    )
+    .await;
 
     let params = json!({
         "urls": ["https://example.com/1", "https://example.com/2"],
@@ -33,6 +39,6 @@ async fn test_mcp_tools_list_import() {
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
-    
+
     assert!(tool_names.contains(&"import_watches"));
 }

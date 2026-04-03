@@ -1,6 +1,6 @@
+use changedetection_mcp_rs::api::Client;
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
-use changedetection_mcp_rs::api::Client;
 
 #[tokio::test]
 async fn test_get_full_spec_success() {

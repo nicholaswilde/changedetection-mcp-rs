@@ -18,7 +18,11 @@ async fn test_pause_watch() {
     )
     .await;
 
-    let result = app.client.set_watch_state(uuid, "paused", "paused").await.unwrap();
+    let result = app
+        .client
+        .set_watch_state(uuid, "paused", "paused")
+        .await
+        .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
@@ -37,7 +41,11 @@ async fn test_unpause_watch() {
     )
     .await;
 
-    let result = app.client.set_watch_state(uuid, "paused", "unpaused").await.unwrap();
+    let result = app
+        .client
+        .set_watch_state(uuid, "paused", "unpaused")
+        .await
+        .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
@@ -56,7 +64,11 @@ async fn test_mute_notifications() {
     )
     .await;
 
-    let result = app.client.set_watch_state(uuid, "muted", "muted").await.unwrap();
+    let result = app
+        .client
+        .set_watch_state(uuid, "muted", "muted")
+        .await
+        .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 
@@ -75,6 +87,10 @@ async fn test_unmute_notifications() {
     )
     .await;
 
-    let result = app.client.set_watch_state(uuid, "muted", "unmuted").await.unwrap();
+    let result = app
+        .client
+        .set_watch_state(uuid, "muted", "unmuted")
+        .await
+        .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }

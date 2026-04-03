@@ -135,7 +135,11 @@ async fn test_get_watch_diff() {
     )
     .await;
 
-    let diff = app.client.get_watch_diff(uuid, from, to, None).await.unwrap();
+    let diff = app
+        .client
+        .get_watch_diff(uuid, from, to, None)
+        .await
+        .unwrap();
     assert_eq!(diff, response_body);
 }
 

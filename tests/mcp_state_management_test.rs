@@ -20,7 +20,11 @@ async fn test_mcp_pause_watch() {
     .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("pause_watch", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("pause_watch", Some(params))
+        .await
+        .unwrap();
 
     assert_eq!(result, response_body);
 }
@@ -41,7 +45,11 @@ async fn test_mcp_unpause_watch() {
     .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("unpause_watch", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("unpause_watch", Some(params))
+        .await
+        .unwrap();
 
     assert_eq!(result, response_body);
 }
@@ -62,7 +70,11 @@ async fn test_mcp_mute_notifications() {
     .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("mute_notifications", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("mute_notifications", Some(params))
+        .await
+        .unwrap();
 
     assert_eq!(result, response_body);
 }
@@ -83,7 +95,11 @@ async fn test_mcp_unmute_notifications() {
     .await;
 
     let params = json!({ "uuid": uuid });
-    let result = app.mcp.handle_method("unmute_notifications", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("unmute_notifications", Some(params))
+        .await
+        .unwrap();
 
     assert_eq!(result, response_body);
 }
@@ -96,7 +112,7 @@ async fn test_mcp_tools_list_state_management() {
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
-    
+
     assert!(tool_names.contains(&"pause_watch"));
     assert!(tool_names.contains(&"unpause_watch"));
     assert!(tool_names.contains(&"mute_notifications"));

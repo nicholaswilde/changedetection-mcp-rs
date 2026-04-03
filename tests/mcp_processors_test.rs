@@ -20,7 +20,11 @@ components:
 
     app.mock_get_text("/api/v1/full-spec", 200, mock_spec).await;
 
-    let result = app.mcp.handle_method("list_processors", None).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("list_processors", None)
+        .await
+        .unwrap();
 
     assert_eq!(result, json!(["restock_diff", "text_json_diff"]));
 }
@@ -33,6 +37,6 @@ async fn test_mcp_tools_list_processors() {
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
-    
+
     assert!(tool_names.contains(&"list_processors"));
 }

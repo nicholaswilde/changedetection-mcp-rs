@@ -270,6 +270,26 @@ async fn test_live_search_filtering() {
 }
 
 #[tokio::test]
+async fn test_live_list_processors() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    let result = mcp
+        .handle_method("list_processors", None)
+        .await
+        .expect("Failed to list processors");
+
+    assert!(result.is_array());
+    let processors = result.as_array().unwrap();
+    assert!(!processors.is_empty());
+    println!("Available processors: {:?}", processors);
+}
+
+#[tokio::test]
 async fn test_live_history_diffs() {
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
@@ -526,11 +546,14 @@ async fn test_live_snapshot_content() {
 
     assert!(content.is_string());
     assert!(!content.as_str().unwrap().is_empty());
-    println!("Retrieved content length: {}", content.as_str().unwrap().len());
-    }
+    println!(
+        "Retrieved content length: {}",
+        content.as_str().unwrap().len()
+    );
+}
 
-    #[tokio::test]
-    async fn test_live_import_watches() {
+#[tokio::test]
+async fn test_live_import_watches() {
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -564,10 +587,10 @@ async fn test_live_snapshot_content() {
             .expect("Failed to delete watch after import test");
     }
     println!("Cleaned up imported watches.");
-    }
+}
 
-    #[tokio::test]
-    async fn test_live_state_management() {
+#[tokio::test]
+async fn test_live_state_management() {
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -596,34 +619,46 @@ async fn test_live_snapshot_content() {
         .handle_method("pause_watch", Some(params.clone()))
         .await
         .expect("Failed to pause watch");
-    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+    assert_eq!(
+        result.get("status").and_then(|v| v.as_str()),
+        Some("success")
+    );
 
     // 3. Unpause watch
     let result = mcp
         .handle_method("unpause_watch", Some(params.clone()))
         .await
         .expect("Failed to unpause watch");
-    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+    assert_eq!(
+        result.get("status").and_then(|v| v.as_str()),
+        Some("success")
+    );
 
     // 4. Mute notifications
     let result = mcp
         .handle_method("mute_notifications", Some(params.clone()))
         .await
         .expect("Failed to mute notifications");
-    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+    assert_eq!(
+        result.get("status").and_then(|v| v.as_str()),
+        Some("success")
+    );
 
     // 5. Unmute notifications
     let result = mcp
         .handle_method("unmute_notifications", Some(params.clone()))
         .await
         .expect("Failed to unmute notifications");
-    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+    assert_eq!(
+        result.get("status").and_then(|v| v.as_str()),
+        Some("success")
+    );
 
     println!("State management tests completed for watch: {}", uuid);
-    }
+}
 
-    #[tokio::test]
-    async fn test_live_watch_filtering() {
+#[tokio::test]
+async fn test_live_watch_filtering() {
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -638,7 +673,10 @@ async fn test_live_snapshot_content() {
         .await
         .expect("Failed to list unpaused watches");
     assert!(result.is_object());
-    println!("Unpaused watches found: {}", result.as_object().unwrap().len());
+    println!(
+        "Unpaused watches found: {}",
+        result.as_object().unwrap().len()
+    );
 
     // 2. Filter by paused
     let params = serde_json::json!({ "state": "paused" });
@@ -647,7 +685,10 @@ async fn test_live_snapshot_content() {
         .await
         .expect("Failed to list paused watches");
     assert!(result.is_object());
-    println!("Paused watches found: {}", result.as_object().unwrap().len());
+    println!(
+        "Paused watches found: {}",
+        result.as_object().unwrap().len()
+    );
 
     // 3. Filter by error
     let params = serde_json::json!({ "state": "error" });
@@ -656,6 +697,58 @@ async fn test_live_snapshot_content() {
         .await
         .expect("Failed to list watches with errors");
     assert!(result.is_object());
-    println!("Watches with errors found: {}", result.as_object().unwrap().len());
-    }
+    println!(
+        "Watches with errors found: {}",
+        result.as_object().unwrap().len()
+    );
+}
 
+#[tokio::test]
+async fn test_live_watch_screenshot() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Find any watch (we'll try to get a screenshot even if it 404s, to verify the tool handles it)
+    let watches_result = mcp
+        .handle_method("list_watches", None)
+        .await
+        .expect("Failed to list watches");
+    let uuid = watches_result
+        .as_object()
+        .expect("list_watches should return an object")
+        .keys()
+        .next()
+        .expect("No watches found for live test")
+        .clone();
+
+    println!("Testing screenshot on watch: {}", uuid);
+
+    // 2. Get screenshot
+    let params = serde_json::json!({ "uuid": uuid });
+    let result = mcp
+        .handle_method("get_watch_screenshot", Some(params))
+        .await;
+
+    match result {
+        Ok(b64) => {
+            assert!(b64.is_string());
+            println!(
+                "Retrieved screenshot (base64 length: {})",
+                b64.as_str().unwrap().len()
+            );
+        }
+        Err(e) => {
+            // If it's a 404, that's acceptable for a live test if no watches have screenshots
+            let msg = e.to_string();
+            if msg.contains("404") {
+                println!("Screenshot not found (404) for watch {}, which is expected if not using a browser fetcher.", uuid);
+            } else {
+                panic!("Failed to get watch screenshot: {}", e);
+            }
+        }
+    }
+}

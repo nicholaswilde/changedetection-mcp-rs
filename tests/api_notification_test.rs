@@ -54,7 +54,11 @@ async fn test_update_notifications() {
     app.mock_put("/api/v1/notifications", 200, Some(response_body))
         .await;
 
-    let result = app.client.update_notifications(notification_urls).await.unwrap();
+    let result = app
+        .client
+        .update_notifications(notification_urls)
+        .await
+        .unwrap();
     assert_eq!(result.get("status").unwrap(), "success");
 }
 

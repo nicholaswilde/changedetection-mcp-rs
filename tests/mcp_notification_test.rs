@@ -15,7 +15,11 @@ async fn test_mcp_list_notifications() {
     app.mock_get("/api/v1/notifications", 200, Some(response_body.clone()))
         .await;
 
-    let result = app.mcp.handle_method("list_notifications", None).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("list_notifications", None)
+        .await
+        .unwrap();
 
     // The API client now returns Vec<String>, which MCP should serialize as an array
     assert_eq!(result, json!(["mailto://test@example.com"]));
@@ -96,7 +100,7 @@ async fn test_mcp_tools_list_notifications() {
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
-    
+
     assert!(tool_names.contains(&"list_notifications"));
     assert!(tool_names.contains(&"add_notification"));
     assert!(tool_names.contains(&"update_notifications"));

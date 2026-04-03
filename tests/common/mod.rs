@@ -108,7 +108,12 @@ impl MockApp {
             .await;
     }
 
-    pub async fn mock_post_text(&self, path_str: &str, status: u16, body: Option<serde_json::Value>) {
+    pub async fn mock_post_text(
+        &self,
+        path_str: &str,
+        status: u16,
+        body: Option<serde_json::Value>,
+    ) {
         let mut response = ResponseTemplate::new(status);
         if let Some(b) = body {
             response = response.set_body_json(b);

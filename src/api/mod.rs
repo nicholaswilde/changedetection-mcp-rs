@@ -529,25 +529,55 @@ impl Client {
 
     pub async fn list_processors(&self) -> Result<Vec<String>, ApiError> {
         let spec = self.get_full_spec().await?;
-        let yaml: serde_yaml::Value = serde_yaml::from_str(&spec).map_err(|e| {
-            ApiError::Internal(format!("Failed to parse OpenAPI spec: {}", e))
-        })?;
+        let yaml: serde_yaml::Value = serde_yaml::from_str(&spec)
+            .map_err(|e| ApiError::Internal(format!("Failed to parse OpenAPI spec: {}", e)))?;
 
-        let processors = yaml
-            .get("components")
-            .and_then(|v| v.get("schemas"))
-            .and_then(|v| v.get("Watch"))
-            .and_then(|v| v.get("properties"))
-            .and_then(|v| v.get("processor"))
-            .and_then(|v| v.get("enum"))
-            .and_then(|v| v.as_sequence())
-            .map(|a| {
-                a.iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let schemas = yaml.get("components").and_then(|v| v.get("schemas"));
 
-        Ok(processors)
+        if let Some(schemas) = schemas {
+            // Try different possible locations for the processor enum
+            for schema_name in &["WatchBase", "Watch", "CreateWatch", "UpdateWatch"] {
+                if let Some(schema) = schemas.get(*schema_name) {
+                    let enum_vals = schema
+                        .get("properties")
+                        .and_then(|v| v.get("processor"))
+                        .and_then(|v| v.get("enum"))
+                        .and_then(|v| v.as_sequence());
+
+                    if let Some(seq) = enum_vals {
+                        let processors: Vec<String> = seq
+                            .iter()
+                            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                            .collect();
+                        if !processors.is_empty() {
+                            return Ok(processors);
+                        }
+                    }
+
+                    // Also check allOf if present
+                    if let Some(all_of) = schema.get("allOf").and_then(|v| v.as_sequence()) {
+                        for sub_schema in all_of {
+                            let enum_vals = sub_schema
+                                .get("properties")
+                                .and_then(|v| v.get("processor"))
+                                .and_then(|v| v.get("enum"))
+                                .and_then(|v| v.as_sequence());
+
+                            if let Some(seq) = enum_vals {
+                                let processors: Vec<String> = seq
+                                    .iter()
+                                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                    .collect();
+                                if !processors.is_empty() {
+                                    return Ok(processors);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(vec![])
     }
 }

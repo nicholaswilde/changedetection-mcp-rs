@@ -11,15 +11,18 @@ async fn test_import_watches() {
         "https://example.com/2".to_string(),
     ];
     let tag = "imported";
-    let response_body = json!([
-        "uuid-1",
-        "uuid-2"
-    ]);
+    let response_body = json!(["uuid-1", "uuid-2"]);
 
     // The endpoint expects line-separated URLs in the body
     // and config in query params.
-    app.mock_post_with_query("/api/v1/import", "tag", "imported", 200, Some(response_body))
-        .await;
+    app.mock_post_with_query(
+        "/api/v1/import",
+        "tag",
+        "imported",
+        200,
+        Some(response_body),
+    )
+    .await;
 
     let result = app.client.import_watches(urls, Some(tag)).await.unwrap();
     assert_eq!(result.len(), 2);
