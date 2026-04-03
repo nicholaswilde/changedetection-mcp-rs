@@ -869,6 +869,25 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "find_watches_by_error" => {
+                    let result =
+                        self.client.find_watches_by_error().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "list_watches_by_processor" => {
+                    let args: ListWatchesByProcessorArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .list_watches_by_processor(&args.processor)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
