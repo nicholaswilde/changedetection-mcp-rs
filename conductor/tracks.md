@@ -4,12 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Snapshot & History Management
-Tools for managing and querying historical watch snapshots (deletion, re-indexing, metadata).
-- **Link:** [Track Folder](./tracks/snapshot_history_management/)
-
----
-
 ## [ ] Track: System & Environment Discovery
 Tools for discovering instance-level configurations (fetchers, proxies, global settings).
 - **Link:** [Track Folder](./tracks/system_environment_discovery/)
