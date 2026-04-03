@@ -32,7 +32,8 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Trigger Re-check:** Manually force a check for changes on a specific watch.
 - **Get Snapshots:** Retrieve historical snapshots of tracked pages.
 - **Processor Discovery:** List available change detection processors (e.g., restock_diff, text_json_diff).
-- **Watch Diffs & History:** Retrieve historical snapshots and compare changes between them.
+- **Advanced Snapshot Analysis:** Tools for retrieving technical metadata (content-length, content-type) for snapshots and bulk-listing history across multiple watches.
+- **Retention Management:** Dedicated tools to manage watch history size and retention limits.
 
 ## Design Principles
 - **Rust-powered Efficiency:** Leverage Rust's performance and safety for a reliable server.
