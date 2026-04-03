@@ -1,0 +1,8 @@
+{
+  "id": "bulk_import_20260401",
+  "name": "Bulk Import",
+  "description": "Add tool to bulk import watches into ChangeDetection.io",
+  "status": "pending",
+  "priority": "medium",
+  "tags": ["feature", "api", "mcp"]
+}
