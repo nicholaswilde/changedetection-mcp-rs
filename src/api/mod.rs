@@ -414,7 +414,10 @@ impl Client {
         Ok(result)
     }
 
-    pub async fn delete_notification(&self, notification_url: &str) -> Result<serde_json::Value, ApiError> {
+    pub async fn delete_notification(
+        &self,
+        notification_url: &str,
+    ) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/notifications", self.base_url);
         let mut body = HashMap::new();
         body.insert("notification_urls", vec![notification_url.to_string()]);
@@ -428,7 +431,7 @@ impl Client {
             .error_for_status()?;
 
         if response.status() == StatusCode::NO_CONTENT {
-             return Ok(serde_json::json!({"status": "success"}));
+            return Ok(serde_json::json!({"status": "success"}));
         }
 
         let text = response.text().await?;
@@ -440,8 +443,15 @@ impl Client {
         Ok(result)
     }
 
-    pub async fn get_snapshot_content(&self, uuid: &str, timestamp: &str) -> Result<String, ApiError> {
-        let url = format!("{}/api/v1/watch/{}/history/{}", self.base_url, uuid, timestamp);
+    pub async fn get_snapshot_content(
+        &self,
+        uuid: &str,
+        timestamp: &str,
+    ) -> Result<String, ApiError> {
+        let url = format!(
+            "{}/api/v1/watch/{}/history/{}",
+            self.base_url, uuid, timestamp
+        );
         let response = self
             .http_client
             .get(&url)
@@ -450,5 +460,28 @@ impl Client {
             .error_for_status()?;
         let content = response.text().await?;
         Ok(content)
+    }
+
+    pub async fn import_watches(
+        &self,
+        urls: Vec<String>,
+        tag: Option<&str>,
+    ) -> Result<Vec<String>, ApiError> {
+        let mut url = format!("{}/api/v1/import", self.base_url);
+        if let Some(tag) = tag {
+            url.push_str(&format!("?tag={}", tag));
+        }
+        let body = urls.join("\n");
+
+        let response = self
+            .http_client
+            .post(&url)
+            .header("Content-Type", "text/plain")
+            .body(body)
+            .send()
+            .await?
+            .error_for_status()?;
+        let uuids = response.json::<Vec<String>>().await?;
+        Ok(uuids)
     }
 }
