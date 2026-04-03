@@ -1,0 +1,8 @@
+{
+  "id": "visual_snapshot_capture_20260401",
+  "name": "Visual Snapshot Capture",
+  "description": "Add tool to retrieve a screenshot of a watch",
+  "status": "pending",
+  "priority": "low",
+  "tags": ["feature", "api", "mcp"]
+}
