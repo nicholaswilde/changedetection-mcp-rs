@@ -17,6 +17,8 @@ use tracing::Instrument;
 pub struct ListWatchesArgs {
     /// Optional tag to filter watches
     pub tag: Option<String>,
+    /// Optional state to filter watches (e.g., "paused", "unpaused", "error")
+    pub state: Option<String>,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -337,11 +339,45 @@ impl ServerHandler for McpServer {
                 "list_watches" => {
                     let args: ListWatchesArgs =
                         serde_json::from_value(params.unwrap_or(serde_json::json!({})))?;
-                    let watches = self
+                    let mut watches = self
                         .client
                         .list_watches(args.tag.as_deref())
                         .await
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+
+                    if let Some(target_state) = args.state {
+                        let mut filtered = std::collections::HashMap::new();
+                        for (uuid, mut watch) in watches {
+                            // If state is requested, we need details to know paused/error status
+                            if let Ok(details) = self.client.get_watch_details(&uuid).await {
+                                watch.paused = details.paused;
+                                watch.last_error = details.last_error;
+
+                                let matches = match target_state.to_lowercase().as_str() {
+                                    "paused" => watch.paused.unwrap_or(false),
+                                    "unpaused" => !watch.paused.unwrap_or(false),
+                                    "error" => {
+                                        if let Some(err) = &watch.last_error {
+                                            match err {
+                                                serde_json::Value::Bool(b) => *b,
+                                                serde_json::Value::String(s) => !s.is_empty(),
+                                                _ => true,
+                                            }
+                                        } else {
+                                            false
+                                        }
+                                    }
+                                    _ => true,
+                                };
+
+                                if matches {
+                                    filtered.insert(uuid, watch);
+                                }
+                            }
+                        }
+                        watches = filtered;
+                    }
+
                     Ok(serde_json::to_value(watches)?)
                 }
                 "search_watches" => {

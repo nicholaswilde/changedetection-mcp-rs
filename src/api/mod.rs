@@ -24,6 +24,8 @@ pub enum ApiError {
 pub struct Watch {
     pub url: String,
     pub title: Option<String>,
+    pub paused: Option<bool>,
+    pub last_error: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
