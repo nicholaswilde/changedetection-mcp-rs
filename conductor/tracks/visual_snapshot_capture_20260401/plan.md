@@ -8,8 +8,8 @@ This plan follows the project's TDD-based workflow.
 3. [x] Verify tests pass in `tests/api_screenshot_test.rs`. [edd5774]
 
 ## Phase 2: MCP Tool Integration
-4. [ ] Add `GetWatchScreenshotArgs` struct to `src/mcp/mod.rs`. [ ]
-5. [ ] Add `get_watch_screenshot` to the `handle_method` match block in `src/mcp/mod.rs`. [ ]
-6. [ ] Add `get_watch_screenshot` to the `tools/list` response in `src/mcp/mod.rs`. [ ]
-7. [ ] Create integration tests in `tests/mcp_screenshot_test.rs`. [ ]
-8. [ ] Verify all tests pass. [ ]
+4. [x] Add `GetWatchScreenshotArgs` struct to `src/mcp/mod.rs`. [28f486c]
+5. [x] Add `get_watch_screenshot` to the `handle_method` match block in `src/mcp/mod.rs`. [28f486c]
+6. [x] Add `get_watch_screenshot` to the `tools/list` response in `src/mcp/mod.rs`. [28f486c]
+7. [x] Create integration tests in `tests/mcp_screenshot_test.rs`. [28f486c]
+8. [x] Verify all tests pass. [28f486c]
