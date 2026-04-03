@@ -19,7 +19,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **List Watches:** Retrieve a list of all current watches, optionally filtered by tag or operational state (paused, active, error).
 - **Search Watches:** Efficiently find specific watches by URL or title using search queries, optimizing token usage.
 - **System Information:** Retrieve ChangeDetection.io server version and statistics for health monitoring and troubleshooting.
-- **Advanced System Discovery:** Retrieve the full OpenAPI specification to discover all available fields and plugin-added functionality.
+- **System & Environment Discovery:** Tools for discovering instance-level configurations, including supported fetchers, configured proxies, global settings, and the full OpenAPI specification.
 - **Tag Management:** Complete CRUD operations for tags, enabling organized watch groups.
 - **Get Watch Details:** Fetch detailed information and the latest changes for a specific watch. Filter watches by tag.
 - **Bulk Import:** Efficiently add multiple URLs as new watches in a single operation.
