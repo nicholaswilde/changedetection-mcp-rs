@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Advanced Watch Configuration
+## [x] Track: Advanced Watch Configuration
 Specialized tools for fine-grained watch configuration (selectors, fetchers, notifications).
 - **Link:** [Track Folder](./tracks/advanced_watch_configuration/)
 
