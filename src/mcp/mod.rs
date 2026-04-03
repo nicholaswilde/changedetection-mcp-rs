@@ -156,6 +156,38 @@ pub struct ImportWatchesArgs {
     pub tag: Option<String>,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct SetWatchSelectorsArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// Optional CSS filter
+    pub css_filter: Option<String>,
+    /// Optional XPath filter
+    pub xpath_filter: Option<String>,
+    /// Optional JSON filter
+    pub json_filter: Option<String>,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct SetWatchFetcherArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// The fetcher to use (e.g., "html_webdriver", "html_requests", "playwright")
+    pub fetcher: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct ConfigureWatchNotificationsArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// The list of Apprise-compatible URLs for this watch
+    pub notification_urls: Vec<String>,
+    /// Optional notification title override
+    pub notification_title: Option<String>,
+    /// Optional notification body override
+    pub notification_body: Option<String>,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -880,6 +912,27 @@ impl ServerHandler for McpServer {
                             description: "List all available processors in ChangeDetection.io"
                                 .to_string(),
                             input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "set_watch_selectors".to_string(),
+                            description: "Explicitly set CSS, XPath, or JSONPath selectors for a watch"
+                                .to_string(),
+                            input_schema: Some(get_schema::<SetWatchSelectorsArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "set_watch_fetcher".to_string(),
+                            description: "Switch the fetching engine for a specific watch"
+                                .to_string(),
+                            input_schema: Some(get_schema::<SetWatchFetcherArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "configure_watch_notifications".to_string(),
+                            description: "Configure per-watch notification settings"
+                                .to_string(),
+                            input_schema: Some(get_schema::<ConfigureWatchNotificationsArgs>()),
                             annotations: None,
                         },
                     ];

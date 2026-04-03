@@ -64,7 +64,7 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 28);
+    assert_eq!(tools.len(), 31);
 
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"get_full_spec"));
@@ -73,6 +73,9 @@ async fn test_mcp_tools_list() {
     assert!(tool_names.contains(&"get_watch_diff"));
     assert!(tool_names.contains(&"update_watch"));
     assert!(tool_names.contains(&"search_watches"));
+    assert!(tool_names.contains(&"set_watch_selectors"));
+    assert!(tool_names.contains(&"set_watch_fetcher"));
+    assert!(tool_names.contains(&"configure_watch_notifications"));
     assert!(tool_names.contains(&"list_tags"));
     assert!(tool_names.contains(&"create_tag"));
     assert!(tool_names.contains(&"get_tag_details"));
