@@ -2,7 +2,7 @@
 
 This plan follows the project's TDD-based workflow.
 
-## Phase 1: API Client Implementation
+## Phase 1: API Client Implementation [checkpoint: b1164cc]
 1. [x] Create a new test file `tests/api_import_test.rs` with failing tests for `import_watches`. [0b00fed]
 2. [x] Implement `import_watches` in `src/api/mod.rs`. [0b00fed]
 3. [x] Verify tests pass in `tests/api_import_test.rs`. [0b00fed]
