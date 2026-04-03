@@ -695,7 +695,7 @@ impl ServerHandler for McpServer {
                         },
                         Tool {
                             name: "list_watches".to_string(),
-                            description: "List all watches in ChangeDetection.io".to_string(),
+                            description: "List all watches, optionally filtered by tag or state (paused, unpaused, error)".to_string(),
                             input_schema: Some(get_schema::<ListWatchesArgs>()),
                             annotations: None,
                         },
