@@ -28,6 +28,7 @@ pub struct Watch {
     pub title: Option<String>,
     pub paused: Option<bool>,
     pub last_error: Option<serde_json::Value>,
+    pub processor: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -156,6 +157,38 @@ impl Client {
             .error_for_status()?;
         let watches = response.json::<HashMap<String, Watch>>().await?;
         Ok(watches)
+    }
+
+    pub async fn find_watches_by_error(&self) -> Result<HashMap<String, Watch>, ApiError> {
+        let watches = self.list_watches(None).await?;
+        let filtered = watches
+            .into_iter()
+            .filter(|(_, watch)| {
+                if let Some(error) = &watch.last_error {
+                    match error {
+                        serde_json::Value::Bool(b) => *b,
+                        serde_json::Value::String(s) => !s.is_empty(),
+                        serde_json::Value::Null => false,
+                        _ => true,
+                    }
+                } else {
+                    false
+                }
+            })
+            .collect();
+        Ok(filtered)
+    }
+
+    pub async fn list_watches_by_processor(
+        &self,
+        processor: &str,
+    ) -> Result<HashMap<String, Watch>, ApiError> {
+        let watches = self.list_watches(None).await?;
+        let filtered = watches
+            .into_iter()
+            .filter(|(_, watch)| watch.processor.as_deref() == Some(processor))
+            .collect();
+        Ok(filtered)
     }
 
     pub async fn get_watch_details(&self, uuid: &str) -> Result<Watch, ApiError> {
