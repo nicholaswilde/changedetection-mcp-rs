@@ -621,3 +621,41 @@ async fn test_live_snapshot_content() {
 
     println!("State management tests completed for watch: {}", uuid);
     }
+
+    #[tokio::test]
+    async fn test_live_watch_filtering() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Filter by unpaused (most watches should be unpaused)
+    let params = serde_json::json!({ "state": "unpaused" });
+    let result = mcp
+        .handle_method("list_watches", Some(params))
+        .await
+        .expect("Failed to list unpaused watches");
+    assert!(result.is_object());
+    println!("Unpaused watches found: {}", result.as_object().unwrap().len());
+
+    // 2. Filter by paused
+    let params = serde_json::json!({ "state": "paused" });
+    let result = mcp
+        .handle_method("list_watches", Some(params))
+        .await
+        .expect("Failed to list paused watches");
+    assert!(result.is_object());
+    println!("Paused watches found: {}", result.as_object().unwrap().len());
+
+    // 3. Filter by error
+    let params = serde_json::json!({ "state": "error" });
+    let result = mcp
+        .handle_method("list_watches", Some(params))
+        .await
+        .expect("Failed to list watches with errors");
+    assert!(result.is_object());
+    println!("Watches with errors found: {}", result.as_object().unwrap().len());
+    }
+
