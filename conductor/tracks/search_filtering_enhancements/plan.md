@@ -1,4 +1,4 @@
-# Implementation Plan: Search & Filtering Enhancements
+# Implementation Plan: Search & Filtering Enhancements [checkpoint: bd2d628]
 
 ## Tasks
 - [x] **API Implementation**: Add methods to `Client` in `src/api/mod.rs` for filtering watches by error and processor. ba63300
