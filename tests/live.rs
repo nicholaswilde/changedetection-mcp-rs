@@ -752,3 +752,38 @@ async fn test_live_watch_screenshot() {
         }
     }
 }
+
+#[tokio::test]
+async fn test_live_advanced_filtering() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Test find_watches_by_error
+    let error_result = mcp
+        .handle_method("find_watches_by_error", None)
+        .await
+        .expect("Failed to find watches by error");
+    assert!(error_result.is_object());
+    println!(
+        "Watches with errors (live): {}",
+        error_result.as_object().unwrap().len()
+    );
+
+    // 2. Test list_watches_by_processor
+    let params = serde_json::json!({
+        "processor": "text_json_diff"
+    });
+    let processor_result = mcp
+        .handle_method("list_watches_by_processor", Some(params))
+        .await
+        .expect("Failed to list watches by processor");
+    assert!(processor_result.is_object());
+    println!(
+        "Watches with text_json_diff (live): {}",
+        processor_result.as_object().unwrap().len()
+    );
+}

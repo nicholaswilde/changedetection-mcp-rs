@@ -66,7 +66,7 @@ tasks:
     desc: Run the project
     deps: [build:debug]
     cmds:
-      - ./target/debug/changedetection-mcp-rs
+      - ./target/debug/changedetection-mcp-rs {{.CLI_ARGS}}
 
   check:
     desc: Check code for errors without generating binary
