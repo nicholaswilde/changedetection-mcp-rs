@@ -188,6 +188,28 @@ pub struct ConfigureWatchNotificationsArgs {
     pub notification_body: Option<String>,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct ListAllHistoryArgs {
+    /// Optional tag to filter watches
+    pub tag: Option<String>,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct SetHistoryLimitArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// The maximum number of snapshots to keep
+    pub limit: i32,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct GetSnapshotInfoArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+    /// The timestamp of the snapshot
+    pub timestamp: String,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -979,6 +1001,27 @@ impl ServerHandler for McpServer {
                             description: "Configure per-watch notification settings"
                                 .to_string(),
                             input_schema: Some(get_schema::<ConfigureWatchNotificationsArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_all_history".to_string(),
+                            description: "Retrieve combined history list for all watches, optionally filtered by tag"
+                                .to_string(),
+                            input_schema: Some(get_schema::<ListAllHistoryArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "set_history_limit".to_string(),
+                            description: "Manage the history retention limit for a watch"
+                                .to_string(),
+                            input_schema: Some(get_schema::<SetHistoryLimitArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_snapshot_info".to_string(),
+                            description: "Retrieve technical metadata for a specific snapshot"
+                                .to_string(),
+                            input_schema: Some(get_schema::<GetSnapshotInfoArgs>()),
                             annotations: None,
                         },
                     ];
