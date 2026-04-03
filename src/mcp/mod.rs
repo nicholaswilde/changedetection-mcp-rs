@@ -697,6 +697,14 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "list_processors" => {
+                    let result = self
+                        .client
+                        .list_processors()
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
@@ -865,6 +873,13 @@ impl ServerHandler for McpServer {
                             name: "delete_notification".to_string(),
                             description: "Delete a global notification endpoint".to_string(),
                             input_schema: Some(get_schema::<DeleteNotificationArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_processors".to_string(),
+                            description: "List all available processors in ChangeDetection.io"
+                                .to_string(),
+                            input_schema: None,
                             annotations: None,
                         },
                     ];
