@@ -23,7 +23,7 @@ jobs:
         run: task build:debug
         
       - name: Run Unit Tests
-        run: task test
+        run: task test -- --skip test_live_
         
       - name: Run Hurl Tests
         run: |

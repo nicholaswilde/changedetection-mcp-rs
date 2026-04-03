@@ -76,7 +76,7 @@ tasks:
   test:
     desc: Run unit tests only
     cmds:
-      - cargo test --lib --tests
+      - cargo test --lib --tests {{.CLI_ARGS}}
 
   test:ci:
     desc: Run all checks (format, lint, and unit tests)
