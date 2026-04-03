@@ -512,4 +512,16 @@ impl Client {
 
         Ok(result)
     }
+
+    pub async fn get_watch_screenshot(&self, uuid: &str) -> Result<Vec<u8>, ApiError> {
+        let url = format!("{}/api/v1/watch/{}/screenshot", self.base_url, uuid);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let bytes = response.bytes().await?;
+        Ok(bytes.to_vec())
+    }
 }

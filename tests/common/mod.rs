@@ -68,6 +68,14 @@ impl MockApp {
             .await;
     }
 
+    pub async fn mock_get_binary(&self, path_str: &str, status: u16, body: Vec<u8>) {
+        Mock::given(method("GET"))
+            .and(path(path_str))
+            .respond_with(ResponseTemplate::new(status).set_body_raw(body, "image/png"))
+            .mount(&self.server)
+            .await;
+    }
+
     pub async fn mock_post(&self, path_str: &str, status: u16, body: Option<serde_json::Value>) {
         let mut response = ResponseTemplate::new(status);
         if let Some(b) = body {
