@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: System & Environment Discovery
-Tools for discovering instance-level configurations (fetchers, proxies, global settings).
-- **Link:** [Track Folder](./tracks/system_environment_discovery/)
-
----
 
 ## [ ] Track: Search & Filtering Enhancements
 Specialized tools for identifying problematic watches or auditing configurations (error search, processor filtering).
