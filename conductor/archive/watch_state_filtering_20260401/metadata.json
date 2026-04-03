@@ -1,0 +1,8 @@
+{
+  "id": "watch_state_filtering_20260401",
+  "name": "Watch Filtering by State",
+  "description": "Enhance list_watches tool to support filtering by watch state (paused, error, etc.)",
+  "status": "pending",
+  "priority": "low",
+  "tags": ["feature", "api", "mcp"]
+}
