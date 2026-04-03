@@ -133,6 +133,14 @@ pub struct GetSnapshotContentArgs {
     pub timestamp: String,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct ImportWatchesArgs {
+    /// The list of URLs to import
+    pub urls: Vec<String>,
+    /// The tag to assign to the imported watches
+    pub tag: Option<String>,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -509,6 +517,18 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "import_watches" => {
+                    let args: ImportWatchesArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .import_watches(args.urls, args.tag.as_deref())
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "get_system_info" => {
                     let info =
                         self.client.get_system_info().await.map_err(|e| {
@@ -674,6 +694,12 @@ impl ServerHandler for McpServer {
                             description: "Get the full content of a specific watch snapshot"
                                 .to_string(),
                             input_schema: Some(get_schema::<GetSnapshotContentArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "import_watches".to_string(),
+                            description: "Bulk import a list of URLs as new watches".to_string(),
+                            input_schema: Some(get_schema::<ImportWatchesArgs>()),
                             annotations: None,
                         },
                         Tool {
