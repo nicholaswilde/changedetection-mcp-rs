@@ -6,7 +6,7 @@ use mcp_sdk_rs::server::ServerHandler;
 use serde_json::json;
 
 #[tokio::test]
-async fn test_mcp_get_watch_screenshot() {
+async fn test_mcp_history_ops_get_screenshot() {
     let app = MockApp::new().await;
     let uuid = "test-uuid";
     let binary_data = vec![0, 1, 2, 3, 4, 5];
@@ -19,10 +19,10 @@ async fn test_mcp_get_watch_screenshot() {
     )
     .await;
 
-    let params = json!({ "uuid": uuid });
+    let params = json!({ "action": "GetScreenshot", "uuid": uuid });
     let result = app
         .mcp
-        .handle_method("get_watch_screenshot", Some(params))
+        .handle_method("history_ops", Some(params))
         .await
         .unwrap();
 
@@ -30,7 +30,7 @@ async fn test_mcp_get_watch_screenshot() {
 }
 
 #[tokio::test]
-async fn test_mcp_tools_list_screenshot() {
+async fn test_mcp_tools_list_history_ops() {
     let app = MockApp::new().await;
 
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
@@ -38,5 +38,5 @@ async fn test_mcp_tools_list_screenshot() {
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
 
-    assert!(tool_names.contains(&"get_watch_screenshot"));
+    assert!(tool_names.contains(&"history_ops"));
 }
