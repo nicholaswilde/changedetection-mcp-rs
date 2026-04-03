@@ -9,7 +9,8 @@ This plan follows the project's TDD-based workflow.
 4. [x] Verify tests pass in `tests/api_processors_test.rs`. [93e3067]
 
 ## Phase 2: MCP Tool Integration
-5. [ ] Add `list_processors` to the `handle_method` match block in `src/mcp/mod.rs`. [ ]
-6. [ ] Add `list_processors` to the `tools/list` response in `src/mcp/mod.rs`. [ ]
-7. [ ] Create integration tests in `tests/mcp_processors_test.rs`. [ ]
-8. [ ] Verify all tests pass. [ ]
+5. [x] Add `list_processors` to the `handle_method` match block in `src/mcp/mod.rs`. [7e5e3e4]
+6. [x] Add `list_processors` to the `tools/list` response in `src/mcp/mod.rs`. [7e5e3e4]
+7. [x] Create integration tests in `tests/mcp_processors_test.rs`. [7e5e3e4]
+8. [x] Verify all tests pass. [7e5e3e4]
+
