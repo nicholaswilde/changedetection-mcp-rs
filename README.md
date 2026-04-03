@@ -11,13 +11,18 @@ A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MC
 ## ✨ Features
 
 - **Watch Management:**
-    - `list_watches`: List all watches in ChangeDetection.io.
+    - `list_watches`: List all watches, optionally filtered by tag or state (paused, unpaused, error).
     - `search_watches`: Search for watches by URL or title.
     - `get_watch_details`: Get details of a specific watch.
     - `create_watch`: Create a new watch.
     - `update_watch`: Update a specific watch.
     - `delete_watch`: Delete a specific watch.
     - `trigger_check`: Trigger a re-check for a specific watch.
+    - `import_watches`: Bulk import a list of URLs as new watches.
+    - `pause_watch`: Pause a watch (stop checking for changes).
+    - `unpause_watch`: Resume checking for changes on a watch.
+    - `mute_notifications`: Stop sending notifications for a watch.
+    - `unmute_notifications`: Resume sending notifications for a watch.
 - **Tag Management:**
     - `list_tags`: List all tags.
     - `create_tag`: Create a new tag.
@@ -30,12 +35,14 @@ A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MC
     - `update_notifications`: Replace all global notification endpoints.
     - `delete_notification`: Delete a global notification endpoint.
 - **Snapshot & Diff Tools:**
-
     - `get_watch_history`: Get the history of snapshots for a specific watch.
     - `get_watch_diff`: Get the difference between two snapshots of a watch.
+    - `get_snapshot_content`: Get the full content of a specific watch snapshot.
+    - `get_watch_screenshot`: Get a visual snapshot (screenshot) of a specific watch.
 - **System Discovery:**
     - `get_system_info`: Retrieve ChangeDetection.io system status and version.
     - `get_full_spec`: Retrieve the full OpenAPI specification of the instance.
+    - `list_processors`: List all available change detection processors.
 - **Multi-Transport Support:**
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
   - **HTTP/JSON-RPC:** Remote transport for testing and external clients.
