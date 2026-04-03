@@ -22,7 +22,7 @@ pub enum ApiError {
     Internal(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Watch {
     pub url: String,
     pub title: Option<String>,
