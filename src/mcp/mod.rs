@@ -210,6 +210,15 @@ pub struct GetSnapshotInfoArgs {
     pub timestamp: String,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct FindWatchesByErrorArgs {}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct ListWatchesByProcessorArgs {
+    /// The name of the processor to filter by (e.g., "restock_diff", "text_json_diff")
+    pub processor: String,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -1098,6 +1107,20 @@ impl ServerHandler for McpServer {
                             description: "Retrieve technical metadata for a specific snapshot"
                                 .to_string(),
                             input_schema: Some(get_schema::<GetSnapshotInfoArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "find_watches_by_error".to_string(),
+                            description: "Identify all watches currently in an error state"
+                                .to_string(),
+                            input_schema: Some(get_schema::<FindWatchesByErrorArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_watches_by_processor".to_string(),
+                            description: "List all watches using a specific change detection processor"
+                                .to_string(),
+                            input_schema: Some(get_schema::<ListWatchesByProcessorArgs>()),
                             annotations: None,
                         },
                     ];
