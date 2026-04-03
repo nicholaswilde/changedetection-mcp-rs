@@ -413,7 +413,7 @@ async fn test_live_notification_lifecycle() {
         .handle_method("add_notification", Some(add_params))
         .await
         .expect("Failed to add notification");
-    
+
     println!("Created notification result: {:?}", add_result);
 
     // 2. List notifications
@@ -434,7 +434,7 @@ async fn test_live_notification_lifecycle() {
     } else {
         new_urls.push(updated_url.clone());
     }
-    
+
     let update_params = serde_json::json!({
         "notification_urls": new_urls
     });
@@ -466,3 +466,103 @@ async fn test_live_notification_lifecycle() {
     let urls_final: Vec<String> = serde_json::from_value(list_result_final).unwrap();
     assert!(!urls_final.contains(&updated_url));
 }
+
+#[tokio::test]
+async fn test_live_snapshot_content() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Find a watch with history
+    let watches_result = mcp
+        .handle_method("list_watches", None)
+        .await
+        .expect("Failed to list watches");
+    let watches = watches_result
+        .as_object()
+        .expect("list_watches should return an object");
+
+    let mut target_uuid = None;
+    let mut target_timestamp = None;
+
+    for (uuid, _) in watches {
+        let history_params = serde_json::json!({ "uuid": uuid });
+        if let Ok(history) = mcp
+            .handle_method("get_watch_history", Some(history_params))
+            .await
+        {
+            if let Some(obj) = history.as_object() {
+                if !obj.is_empty() {
+                    // Get the latest timestamp
+                    let mut timestamps: Vec<String> = obj.keys().cloned().collect();
+                    timestamps.sort();
+                    target_uuid = Some(uuid.clone());
+                    target_timestamp = Some(timestamps.last().unwrap().clone());
+                    break;
+                }
+            }
+        }
+    }
+
+    let uuid = target_uuid.expect("Could not find a watch with history for live test");
+    let timestamp = target_timestamp.expect("Could not find a timestamp for live test");
+    println!(
+        "Testing snapshot content on watch: {} at timestamp: {}",
+        uuid, timestamp
+    );
+
+    // 2. Get snapshot content
+    let content_params = serde_json::json!({
+        "uuid": uuid,
+        "timestamp": timestamp
+    });
+    let content = mcp
+        .handle_method("get_snapshot_content", Some(content_params))
+        .await
+        .expect("Failed to get snapshot content");
+
+    assert!(content.is_string());
+    assert!(!content.as_str().unwrap().is_empty());
+    println!("Retrieved content length: {}", content.as_str().unwrap().len());
+    }
+
+    #[tokio::test]
+    async fn test_live_import_watches() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    let tag = format!("live-import-test-{}", Uuid::new_v4());
+    let params = serde_json::json!({
+        "urls": ["https://example.com/live-1", "https://example.com/live-2"],
+        "tag": tag
+    });
+
+    // 1. Import watches
+    let result = mcp
+        .handle_method("import_watches", Some(params))
+        .await
+        .expect("Failed to import watches");
+
+    assert!(result.is_array());
+    let uuids = result.as_array().unwrap();
+    assert_eq!(uuids.len(), 2);
+    println!("Imported UUIDs: {:?}", uuids);
+
+    // 2. Cleanup (delete the imported watches)
+    for uuid_val in uuids {
+        let uuid = uuid_val.as_str().unwrap();
+        let delete_params = serde_json::json!({ "uuid": uuid });
+        mcp.handle_method("delete_watch", Some(delete_params))
+            .await
+            .expect("Failed to delete watch after import test");
+    }
+    println!("Cleaned up imported watches.");
+    }
+
