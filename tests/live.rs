@@ -566,3 +566,58 @@ async fn test_live_snapshot_content() {
     println!("Cleaned up imported watches.");
     }
 
+    #[tokio::test]
+    async fn test_live_state_management() {
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Get a watch UUID
+    let watches_result = mcp
+        .handle_method("list_watches", None)
+        .await
+        .expect("Failed to list watches");
+    let uuid = watches_result
+        .as_object()
+        .expect("list_watches should return an object")
+        .keys()
+        .next()
+        .expect("No watches found for live test")
+        .clone();
+
+    println!("Testing state management on watch: {}", uuid);
+
+    // 2. Pause watch
+    let params = serde_json::json!({ "uuid": uuid });
+    let result = mcp
+        .handle_method("pause_watch", Some(params.clone()))
+        .await
+        .expect("Failed to pause watch");
+    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+
+    // 3. Unpause watch
+    let result = mcp
+        .handle_method("unpause_watch", Some(params.clone()))
+        .await
+        .expect("Failed to unpause watch");
+    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+
+    // 4. Mute notifications
+    let result = mcp
+        .handle_method("mute_notifications", Some(params.clone()))
+        .await
+        .expect("Failed to mute notifications");
+    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+
+    // 5. Unmute notifications
+    let result = mcp
+        .handle_method("unmute_notifications", Some(params.clone()))
+        .await
+        .expect("Failed to unmute notifications");
+    assert_eq!(result.get("status").and_then(|v| v.as_str()), Some("success"));
+
+    println!("State management tests completed for watch: {}", uuid);
+    }

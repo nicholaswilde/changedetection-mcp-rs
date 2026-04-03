@@ -500,7 +500,8 @@ impl Client {
             .error_for_status()?;
 
         let text = response.text().await?;
-        if text.trim().is_empty() {
+        let trimmed = text.trim().trim_matches('"');
+        if trimmed.is_empty() || trimmed == "OK" {
             return Ok(serde_json::json!({"status": "success"}));
         }
 
