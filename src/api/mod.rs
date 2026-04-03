@@ -18,6 +18,8 @@ pub enum ApiError {
     Serialization(#[from] serde_json::Error),
     #[error("Invalid URL: {0}")]
     Url(String),
+    #[error("Internal error: {0}")]
+    Internal(String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -523,5 +525,29 @@ impl Client {
             .error_for_status()?;
         let bytes = response.bytes().await?;
         Ok(bytes.to_vec())
+    }
+
+    pub async fn list_processors(&self) -> Result<Vec<String>, ApiError> {
+        let spec = self.get_full_spec().await?;
+        let yaml: serde_yaml::Value = serde_yaml::from_str(&spec).map_err(|e| {
+            ApiError::Internal(format!("Failed to parse OpenAPI spec: {}", e))
+        })?;
+
+        let processors = yaml
+            .get("components")
+            .and_then(|v| v.get("schemas"))
+            .and_then(|v| v.get("Watch"))
+            .and_then(|v| v.get("properties"))
+            .and_then(|v| v.get("processor"))
+            .and_then(|v| v.get("enum"))
+            .and_then(|v| v.as_sequence())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        Ok(processors)
     }
 }

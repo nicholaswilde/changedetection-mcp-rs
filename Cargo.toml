@@ -35,11 +35,14 @@ tower-http = { version = "0.6.8", features = ["cors", "trace"] }
 tracing-appender = "0.2.3"
 tracing-serde = "0.2.0"
 openssl = { version = "0.10", features = ["vendored"] }
+base64 = "0.22.1"
+serde_yaml = "0.9"
 
 [dev-dependencies]
 wiremock = "0.6.0"
 tokio-test = "0.4.5"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
+dotenv = "0.15.0"
 
 # Profile for final production releases (smaller, faster)
 [profile.release]
