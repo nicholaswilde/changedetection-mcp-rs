@@ -10,11 +10,11 @@
 ## Phase 2: Core Implementation
 - [x] **Task: Implement Pagination & Field Selection Helpers** 6c4ca3e
     - [ ] Write utility functions in `src/mcp/mod.rs` or a new module to handle JSON field filtering and pagination of HashMaps/Vecs.
-- [ ] **Task: Define New Category Tools**
+- [x] **Task: Define New Category Tools** d9d3a27
     - [ ] Update `src/mcp/mod.rs` with the new tool definitions and schemas.
-- [ ] **Task: Implement Consolidated Handler**
+- [x] **Task: Implement Consolidated Handler** d9d3a27
     - [ ] Refactor `McpServer::handle_method` to dispatch the new category tools to the existing `Client` methods.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 2: Core Implementation' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 2: Core Implementation' (Protocol in workflow.md)** d9d3a27
 
 ## Phase 3: Testing & Migration
 - [ ] **Task: Update Unit Tests**
