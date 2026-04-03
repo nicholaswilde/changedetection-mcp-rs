@@ -2,6 +2,7 @@ use crate::api::Client;
 use crate::cli::Transport;
 use async_trait::async_trait;
 use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
+use base64::{engine::general_purpose, Engine as _};
 use mcp_sdk_rs::error::{Error, ErrorCode};
 use mcp_sdk_rs::server::{Server, ServerHandler};
 use mcp_sdk_rs::transport::stdio::StdioTransport;
@@ -117,6 +118,12 @@ pub struct WatchUuidArgs {
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct GetWatchHistoryArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct GetWatchScreenshotArgs {
     /// The UUID of the watch
     pub uuid: String,
 }
@@ -559,6 +566,19 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "get_watch_screenshot" => {
+                    let args: GetWatchScreenshotArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .get_watch_screenshot(&args.uuid)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    let b64 = general_purpose::STANDARD.encode(result);
+                    Ok(serde_json::to_value(b64)?)
+                }
                 "import_watches" => {
                     let args: ImportWatchesArgs =
                         serde_json::from_value(params.ok_or_else(|| {
@@ -808,6 +828,13 @@ impl ServerHandler for McpServer {
                             description: "Get the full content of a specific watch snapshot"
                                 .to_string(),
                             input_schema: Some(get_schema::<GetSnapshotContentArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_watch_screenshot".to_string(),
+                            description: "Get a visual snapshot (screenshot) of a specific watch"
+                                .to_string(),
+                            input_schema: Some(get_schema::<GetWatchScreenshotArgs>()),
                             annotations: None,
                         },
                         Tool {

@@ -64,7 +64,7 @@ async fn test_mcp_tools_list() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 26);
+    assert_eq!(tools.len(), 27);
 
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"get_full_spec"));
