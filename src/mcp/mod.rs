@@ -707,6 +707,27 @@ impl ServerHandler for McpServer {
                         })?;
                     Ok(serde_json::to_value(spec)?)
                 }
+                "list_fetchers" => {
+                    let fetchers =
+                        self.client.list_fetchers().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                    Ok(serde_json::to_value(fetchers)?)
+                }
+                "list_proxies" => {
+                    let proxies =
+                        self.client.list_proxies().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                    Ok(serde_json::to_value(proxies)?)
+                }
+                "get_global_settings" => {
+                    let settings =
+                        self.client.get_global_settings().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                    Ok(serde_json::to_value(settings)?)
+                }
                 "list_notifications" => {
                     let result = self
                         .client
@@ -851,6 +872,27 @@ impl ServerHandler for McpServer {
                         Tool {
                             name: "get_full_spec".to_string(),
                             description: "Retrieve the full OpenAPI specification of the ChangeDetection.io instance"
+                                .to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_fetchers".to_string(),
+                            description: "List all available fetching engines in ChangeDetection.io"
+                                .to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "list_proxies".to_string(),
+                            description: "List all configured proxies in ChangeDetection.io"
+                                .to_string(),
+                            input_schema: None,
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "get_global_settings".to_string(),
+                            description: "Retrieve global ChangeDetection.io settings"
                                 .to_string(),
                             input_schema: None,
                             annotations: None,

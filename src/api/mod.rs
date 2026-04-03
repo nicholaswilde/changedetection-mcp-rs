@@ -92,6 +92,42 @@ impl Client {
         Ok(info)
     }
 
+    pub async fn list_fetchers(&self) -> Result<Vec<String>, ApiError> {
+        let url = format!("{}/api/v1/fetchers", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let fetchers = response.json::<Vec<String>>().await?;
+        Ok(fetchers)
+    }
+
+    pub async fn list_proxies(&self) -> Result<HashMap<String, String>, ApiError> {
+        let url = format!("{}/api/v1/proxies", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let proxies = response.json::<HashMap<String, String>>().await?;
+        Ok(proxies)
+    }
+
+    pub async fn get_global_settings(&self) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/settings", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let settings = response.json::<serde_json::Value>().await?;
+        Ok(settings)
+    }
+
     pub async fn list_watches(
         &self,
         tag: Option<&str>,

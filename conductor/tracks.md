@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: System & Environment Discovery
+## [~] Track: System & Environment Discovery
 Tools for discovering instance-level configurations (fetchers, proxies, global settings).
 - **Link:** [Track Folder](./tracks/system_environment_discovery/)
 
