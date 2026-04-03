@@ -16,7 +16,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - Users looking to integrate AI-driven web monitoring into their workflows.
 
 ## Key Features (Draft)
-- **List Watches:** Retrieve a list of all current watches from ChangeDetection.io.
+- **List Watches:** Retrieve a list of all current watches, optionally filtered by tag or operational state (paused, active, error).
 - **Search Watches:** Efficiently find specific watches by URL or title using search queries, optimizing token usage.
 - **System Information:** Retrieve ChangeDetection.io server version and statistics for health monitoring and troubleshooting.
 - **Advanced System Discovery:** Retrieve the full OpenAPI specification to discover all available fields and plugin-added functionality.
