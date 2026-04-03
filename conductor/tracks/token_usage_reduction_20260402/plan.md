@@ -8,7 +8,7 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: Research & Schema Definition' (Protocol in workflow.md)** c226695
 
 ## Phase 2: Core Implementation
-- [ ] **Task: Implement Pagination & Field Selection Helpers**
+- [x] **Task: Implement Pagination & Field Selection Helpers** 6c4ca3e
     - [ ] Write utility functions in `src/mcp/mod.rs` or a new module to handle JSON field filtering and pagination of HashMaps/Vecs.
 - [ ] **Task: Define New Category Tools**
     - [ ] Update `src/mcp/mod.rs` with the new tool definitions and schemas.
