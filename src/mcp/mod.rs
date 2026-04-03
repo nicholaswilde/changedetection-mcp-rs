@@ -108,6 +108,12 @@ pub struct TriggerCheckArgs {
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
+pub struct WatchUuidArgs {
+    /// The UUID of the watch
+    pub uuid: String,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
 pub struct GetWatchHistoryArgs {
     /// The UUID of the watch
     pub uuid: String,
@@ -529,6 +535,54 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "pause_watch" => {
+                    let args: WatchUuidArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_watch_state(&args.uuid, "paused", "paused")
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "unpause_watch" => {
+                    let args: WatchUuidArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_watch_state(&args.uuid, "paused", "unpaused")
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "mute_notifications" => {
+                    let args: WatchUuidArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_watch_state(&args.uuid, "muted", "muted")
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "unmute_notifications" => {
+                    let args: WatchUuidArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_watch_state(&args.uuid, "muted", "unmuted")
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "get_system_info" => {
                     let info =
                         self.client.get_system_info().await.map_err(|e| {
@@ -673,6 +727,30 @@ impl ServerHandler for McpServer {
                             name: "trigger_check".to_string(),
                             description: "Trigger a re-check for a specific watch".to_string(),
                             input_schema: Some(get_schema::<TriggerCheckArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "pause_watch".to_string(),
+                            description: "Pause a watch (stop checking for changes)".to_string(),
+                            input_schema: Some(get_schema::<WatchUuidArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "unpause_watch".to_string(),
+                            description: "Resume checking for changes on a watch".to_string(),
+                            input_schema: Some(get_schema::<WatchUuidArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "mute_notifications".to_string(),
+                            description: "Stop sending notifications for a watch".to_string(),
+                            input_schema: Some(get_schema::<WatchUuidArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "unmute_notifications".to_string(),
+                            description: "Resume sending notifications for a watch".to_string(),
+                            input_schema: Some(get_schema::<WatchUuidArgs>()),
                             annotations: None,
                         },
                         Tool {
