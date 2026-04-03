@@ -1,0 +1,7 @@
+{
+  "id": "snapshot_history_management",
+  "name": "Snapshot & History Management",
+  "description": "Tools for managing and querying historical watch snapshots (deletion, re-indexing, metadata).",
+  "status": "todo",
+  "created_at": "2026-04-02T10:00:00Z"
+}

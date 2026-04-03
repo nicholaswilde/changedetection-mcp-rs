@@ -1,0 +1,7 @@
+{
+  "id": "system_environment_discovery",
+  "name": "System & Environment Discovery",
+  "description": "Tools for discovering instance-level configurations (fetchers, proxies, global settings).",
+  "status": "todo",
+  "created_at": "2026-04-02T10:00:00Z"
+}

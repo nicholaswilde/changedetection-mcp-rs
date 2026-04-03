@@ -1,0 +1,7 @@
+{
+  "id": "advanced_watch_configuration",
+  "name": "Advanced Watch Configuration",
+  "description": "Specialized tools for fine-grained watch configuration (selectors, fetchers, notifications).",
+  "status": "todo",
+  "created_at": "2026-04-02T10:00:00Z"
+}
