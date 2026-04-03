@@ -805,6 +805,40 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "list_all_history" => {
+                    let args: ListAllHistoryArgs =
+                        serde_json::from_value(params.unwrap_or(serde_json::json!({})))?;
+                    let result = self
+                        .client
+                        .list_all_history(args.tag.as_deref())
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "set_history_limit" => {
+                    let args: SetHistoryLimitArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_history_limit(&args.uuid, args.limit)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "get_snapshot_info" => {
+                    let args: GetSnapshotInfoArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .get_snapshot_info(&args.uuid, &args.timestamp)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
