@@ -1,7 +1,7 @@
 # Implementation Plan - MCP Token Optimization
 
 ## Phase 1: Research & Schema Definition
-- [ ] **Task: Map Existing Tools to Categories**
+- [x] **Task: Map Existing Tools to Categories** 2db5b37
     - [ ] Create a mapping of all 39 current tools to the 5 proposed category tools (`watch_ops`, `tag_ops`, `notification_ops`, `history_ops`, `system_ops`).
 - [ ] **Task: Define Consolidated Argument Structs**
     - [ ] Design the input schemas for each category tool, including the `action` enum and shared `pagination`/`fields` parameters.
