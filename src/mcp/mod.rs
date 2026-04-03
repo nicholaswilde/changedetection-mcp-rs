@@ -14,6 +14,8 @@ use tokio::io::{stdin, stdout, AsyncBufReadExt, AsyncWriteExt, BufReader, BufWri
 use tokio::sync::mpsc;
 use tracing::Instrument;
 
+pub mod helpers;
+
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct ListWatchesArgs {
     /// Optional tag to filter watches
