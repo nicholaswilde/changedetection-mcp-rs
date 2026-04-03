@@ -4,7 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] [Snapshot Content Retrieval](tracks/snapshot_content_retrieval_20260401/index.md)
 - [ ] [Bulk Import](tracks/bulk_import_20260401/index.md)
 - [ ] [Explicit State Management](tracks/explicit_state_management_20260401/index.md)
 - [ ] [Watch Filtering by State](tracks/watch_state_filtering_20260401/index.md)
