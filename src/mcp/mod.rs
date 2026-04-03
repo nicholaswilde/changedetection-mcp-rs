@@ -737,6 +737,52 @@ impl ServerHandler for McpServer {
                         .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
                     Ok(serde_json::to_value(result)?)
                 }
+                "set_watch_selectors" => {
+                    let args: SetWatchSelectorsArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_watch_selectors(
+                            &args.uuid,
+                            args.css_filter.as_deref(),
+                            args.xpath_filter.as_deref(),
+                            args.json_filter.as_deref(),
+                        )
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "set_watch_fetcher" => {
+                    let args: SetWatchFetcherArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .set_watch_fetcher(&args.uuid, &args.fetcher)
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
+                "configure_watch_notifications" => {
+                    let args: ConfigureWatchNotificationsArgs =
+                        serde_json::from_value(params.ok_or_else(|| {
+                            Error::protocol(ErrorCode::InvalidParams, "Missing parameters")
+                        })?)?;
+                    let result = self
+                        .client
+                        .configure_watch_notifications(
+                            &args.uuid,
+                            args.notification_urls,
+                            args.notification_title.as_deref(),
+                            args.notification_body.as_deref(),
+                        )
+                        .await
+                        .map_err(|e| Error::protocol(ErrorCode::InternalError, e.to_string()))?;
+                    Ok(serde_json::to_value(result)?)
+                }
                 "tools/list" => {
                     let tools = vec![
                         Tool {
