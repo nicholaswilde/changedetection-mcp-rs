@@ -1,0 +1,8 @@
+{
+  "id": "explicit_state_management_20260401",
+  "name": "Explicit State Management",
+  "description": "Add tools for explicit control of watch pause and notification mute states",
+  "status": "pending",
+  "priority": "medium",
+  "tags": ["feature", "api", "mcp"]
+}
