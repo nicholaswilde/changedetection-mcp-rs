@@ -634,4 +634,65 @@ impl Client {
 
         Ok(vec![])
     }
+
+    pub async fn list_all_history(
+        &self,
+        tag: Option<&str>,
+    ) -> Result<HashMap<String, HashMap<String, String>>, ApiError> {
+        let watches = self.list_watches(tag).await?;
+        let mut all_history = HashMap::new();
+
+        for uuid in watches.keys() {
+            if let Ok(history) = self.get_watch_history(uuid).await {
+                all_history.insert(uuid.clone(), history);
+            }
+        }
+
+        Ok(all_history)
+    }
+
+    pub async fn set_history_limit(
+        &self,
+        uuid: &str,
+        limit: i32,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        payload.insert("history_snapshot_max_length", serde_json::json!(limit));
+
+        self.update_watch(uuid, serde_json::to_value(payload)?).await
+    }
+
+    pub async fn get_snapshot_info(
+        &self,
+        uuid: &str,
+        timestamp: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let url = format!(
+            "{}/api/v1/watch/{}/history/{}",
+            self.base_url, uuid, timestamp
+        );
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        let headers = response.headers();
+        let content_length = headers
+            .get("content-length")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u64>().ok());
+        let content_type = headers
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
+
+        Ok(serde_json::json!({
+            "uuid": uuid,
+            "timestamp": timestamp,
+            "content_length": content_length,
+            "content_type": content_type,
+        }))
+    }
 }
