@@ -27,6 +27,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Explicit State Management:** High-intent tools to pause/unpause watches and mute/unmute notifications.
 - **Create/Update Watch:** Programmatically add new URLs to track or modify existing watch configurations.
 - **Delete Watch:** Remove watches that are no longer needed.
+- **Visual Snapshots:** Retrieve base64 encoded screenshots of monitored pages (requires browser fetcher).
 - **Trigger Re-check:** Manually force a check for changes on a specific watch.
 - **Get Snapshots:** Retrieve historical snapshots of tracked pages.
 - **Watch Diffs & History:** Retrieve historical snapshots and compare changes between them.
