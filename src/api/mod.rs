@@ -527,6 +527,57 @@ impl Client {
         Ok(bytes.to_vec())
     }
 
+    pub async fn set_watch_selectors(
+        &self,
+        uuid: &str,
+        css_filter: Option<&str>,
+        xpath_filter: Option<&str>,
+        json_filter: Option<&str>,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        if let Some(css) = css_filter {
+            payload.insert("css_filter", serde_json::json!(css));
+        }
+        if let Some(xpath) = xpath_filter {
+            payload.insert("xpath_filter", serde_json::json!(xpath));
+        }
+        if let Some(json) = json_filter {
+            payload.insert("json_filter", serde_json::json!(json));
+        }
+
+        self.update_watch(uuid, serde_json::to_value(payload)?).await
+    }
+
+    pub async fn set_watch_fetcher(
+        &self,
+        uuid: &str,
+        fetcher: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        payload.insert("fetcher", serde_json::json!(fetcher));
+
+        self.update_watch(uuid, serde_json::to_value(payload)?).await
+    }
+
+    pub async fn configure_watch_notifications(
+        &self,
+        uuid: &str,
+        notification_urls: Vec<String>,
+        notification_title: Option<&str>,
+        notification_body: Option<&str>,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        payload.insert("notification_urls", serde_json::json!(notification_urls));
+        if let Some(title) = notification_title {
+            payload.insert("notification_title", serde_json::json!(title));
+        }
+        if let Some(body) = notification_body {
+            payload.insert("notification_body", serde_json::json!(body));
+        }
+
+        self.update_watch(uuid, serde_json::to_value(payload)?).await
+    }
+
     pub async fn list_processors(&self) -> Result<Vec<String>, ApiError> {
         let spec = self.get_full_spec().await?;
         let yaml: serde_yaml::Value = serde_yaml::from_str(&spec)
