@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Snapshot & History Management
+## [x] Track: Snapshot & History Management
 Tools for managing and querying historical watch snapshots (deletion, re-indexing, metadata).
 - **Link:** [Track Folder](./tracks/snapshot_history_management/)
 
