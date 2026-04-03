@@ -4,12 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Advanced Watch Configuration
-Specialized tools for fine-grained watch configuration (selectors, fetchers, notifications).
-- **Link:** [Track Folder](./tracks/advanced_watch_configuration/)
-
----
-
 ## [ ] Track: Snapshot & History Management
 Tools for managing and querying historical watch snapshots (deletion, re-indexing, metadata).
 - **Link:** [Track Folder](./tracks/snapshot_history_management/)
