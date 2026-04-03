@@ -534,16 +534,19 @@ impl Client {
         xpath_filter: Option<&str>,
         json_filter: Option<&str>,
     ) -> Result<serde_json::Value, ApiError> {
-        let mut payload = HashMap::new();
+        let mut filters = Vec::new();
         if let Some(css) = css_filter {
-            payload.insert("css_filter", serde_json::json!(css));
+            filters.push(css.to_string());
         }
         if let Some(xpath) = xpath_filter {
-            payload.insert("xpath_filter", serde_json::json!(xpath));
+            filters.push(xpath.to_string());
         }
         if let Some(json) = json_filter {
-            payload.insert("json_filter", serde_json::json!(json));
+            filters.push(json.to_string());
         }
+
+        let mut payload = HashMap::new();
+        payload.insert("include_filters", serde_json::json!(filters));
 
         self.update_watch(uuid, serde_json::to_value(payload)?).await
     }
@@ -554,7 +557,7 @@ impl Client {
         fetcher: &str,
     ) -> Result<serde_json::Value, ApiError> {
         let mut payload = HashMap::new();
-        payload.insert("fetcher", serde_json::json!(fetcher));
+        payload.insert("fetch_backend", serde_json::json!(fetcher));
 
         self.update_watch(uuid, serde_json::to_value(payload)?).await
     }
