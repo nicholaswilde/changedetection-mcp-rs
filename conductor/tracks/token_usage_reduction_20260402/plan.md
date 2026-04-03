@@ -17,7 +17,7 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 2: Core Implementation' (Protocol in workflow.md)** d9d3a27
 
 ## Phase 3: Testing & Migration
-- [ ] **Task: Update Unit Tests**
+- [x] **Task: Update Unit Tests** 8626c81
     - [ ] Update tests in `tests/mcp_server_test.rs` and other MCP-related test files to use the new category tools.
 - [ ] **Task: Add Optimization Tests**
     - [ ] Write new tests verifying that pagination and field selection correctly reduce the response size.
