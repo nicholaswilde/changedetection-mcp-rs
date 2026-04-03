@@ -484,4 +484,29 @@ impl Client {
         let uuids = response.json::<Vec<String>>().await?;
         Ok(uuids)
     }
+
+    pub async fn set_watch_state(
+        &self,
+        uuid: &str,
+        key: &str,
+        value: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/watch/{}?{}={}", self.base_url, uuid, key, value);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(serde_json::json!({"status": "success"}));
+        }
+
+        let result =
+            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
+
+        Ok(result)
+    }
 }
