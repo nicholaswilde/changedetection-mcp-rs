@@ -128,6 +128,15 @@ tasks:
       - cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
       - cargo llvm-cov --workspace --all-features --html
 
+  coverage:upload:
+    desc: Upload coverage report to Coveralls
+    precondition:
+      - sh: test -f lcov.info
+        msg: "lcov.info doesn't exist"
+    cmds:
+      - coveralls report lcov.info  -n -r {{ .COVERALLS_REPO_TOKEN }}
+    silent: true
+
   test:live:
     desc: Run live integration tests against a real ChangeDetection.io instance
     cmds:
