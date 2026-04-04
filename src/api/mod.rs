@@ -3,6 +3,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -20,6 +21,16 @@ pub enum ApiError {
     Url(String),
     #[error("Internal error: {0}")]
     Internal(String),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct BrowserStep {
+    /// The operation to perform (e.g., 'click', 'wait', 'input').
+    pub operation: Option<String>,
+    /// The CSS/XPath selector to target.
+    pub selector: Option<String>,
+    /// An optional value for the operation (e.g., text to input).
+    pub optional_value: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -621,6 +632,18 @@ impl Client {
             .await
     }
 
+    pub async fn set_browser_steps(
+        &self,
+        uuid: &str,
+        steps: Vec<BrowserStep>,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        payload.insert("browser_steps", serde_json::json!(steps));
+
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
+    }
+
     pub async fn set_watch_fetcher(
         &self,
         uuid: &str,
@@ -781,7 +804,9 @@ impl Client {
         Ok(result)
     }
 
-    pub async fn export_watches_to_json(&self) -> Result<HashMap<String, serde_json::Value>, ApiError> {
+    pub async fn export_watches_to_json(
+        &self,
+    ) -> Result<HashMap<String, serde_json::Value>, ApiError> {
         let url = format!("{}/api/v1/watch", self.base_url);
         let response = self
             .http_client
@@ -789,8 +814,10 @@ impl Client {
             .send()
             .await?
             .error_for_status()?;
-        let watches = response.json::<HashMap<String, serde_json::Value>>().await?;
-        
+        let watches = response
+            .json::<HashMap<String, serde_json::Value>>()
+            .await?;
+
         // We iterate and fetch full details for each watch to ensure a "Full JSON export"
         let mut full_export = HashMap::new();
         for (uuid, _) in watches {
@@ -801,7 +828,7 @@ impl Client {
                 }
             }
         }
-        
+
         Ok(full_export)
     }
 }

@@ -1,4 +1,4 @@
-use crate::api::{Client, Watch};
+use crate::api::{BrowserStep, Client, Watch};
 use crate::cli::Transport;
 use async_trait::async_trait;
 use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
@@ -71,6 +71,8 @@ pub enum WatchAction {
     ListErrors,
     /// List watches that use a specific change detection processor (e.g., 'restock_diff').
     ListByProcessor,
+    /// Configure browser automation steps (e.g., click, wait, input) for a specific watch.
+    SetBrowserSteps,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -107,6 +109,8 @@ pub struct WatchOpsArgs {
     pub notification_title: Option<String>,
     /// Custom body text for notifications sent from this watch.
     pub notification_body: Option<String>,
+    /// A list of browser automation steps to execute during fetching. Required for SetBrowserSteps.
+    pub browser_steps: Option<Vec<BrowserStep>>,
     #[serde(flatten)]
     pub common: CommonArgs,
 }
@@ -469,11 +473,11 @@ impl ServerHandler for McpServer {
                         let uuid = uri.strip_prefix("watches://")
                             .and_then(|s| s.strip_suffix("/latest"))
                             .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Invalid watches URI format"))?;
-                        
+
                         let content = self.client.get_snapshot_content(uuid, "latest").await.map_err(|e| {
                             Error::protocol(ErrorCode::InternalError, e.to_string())
                         })?;
-                        
+
                         Ok(serde_json::json!({
                             "contents": [{
                                 "uri": uri,
@@ -722,6 +726,18 @@ impl ServerHandler for McpServer {
                                 "watches": result,
                                 "total": count
                             }))
+                        }
+                        WatchAction::SetBrowserSteps => {
+                            let uuid = args.uuid.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
+                            })?;
+                            let steps = args.browser_steps.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing browser_steps")
+                            })?;
+                            let result = self.client.set_browser_steps(&uuid, steps).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::to_value(result)?)
                         }
                     }
                 }
@@ -1041,7 +1057,7 @@ impl ServerHandler for McpServer {
                     let tools = vec![
                         Tool {
                             name: "watch_ops".to_string(),
-                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, creating, updating, deleting, triggering checks, and configuring advanced monitoring settings (selectors, fetchers, notifications).".to_string(),
+                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps).".to_string(),
                             input_schema: Some(get_schema::<WatchOpsArgs>()),
                             annotations: None,
                         },
