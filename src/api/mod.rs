@@ -352,14 +352,33 @@ impl Client {
         from: &str,
         to: &str,
         format_type: Option<&str>,
+        word_diff: Option<&str>,
+        changes_only: Option<&str>,
+        ignore_whitespace: Option<&str>,
     ) -> Result<String, ApiError> {
         let mut url = format!(
             "{}/api/v1/watch/{}/difference/{}/{}",
             self.base_url, uuid, from, to
         );
+        let mut params = Vec::new();
         if let Some(fmt) = format_type {
-            url.push_str(&format!("?format={}", fmt));
+            params.push(format!("format={}", fmt));
         }
+        if let Some(wd) = word_diff {
+            params.push(format!("word_diff={}", wd));
+        }
+        if let Some(co) = changes_only {
+            params.push(format!("changesOnly={}", co));
+        }
+        if let Some(iw) = ignore_whitespace {
+            params.push(format!("ignoreWhitespace={}", iw));
+        }
+
+        if !params.is_empty() {
+            url.push_str("?");
+            url.push_str(&params.join("&"));
+        }
+
         let response = self
             .http_client
             .get(&url)

@@ -712,8 +712,21 @@ async fn test_live_history_diffs() {
         diff_md.as_str().unwrap().len()
     );
 
-    // Markdown diff should contain markdown indicators like # or *
-    // Actually, depending on content it might be different, but let's just assert it's a string.
+    // 6. Get diff with advanced parameters
+    let diff_params_adv = serde_json::json!({
+        "uuid": uuid,
+        "from_timestamp": "previous",
+        "to_timestamp": "latest",
+        "word_diff": "on",
+        "changes_only": "on",
+        "ignore_whitespace": "on"
+    });
+    let diff_adv = mcp
+        .handle_method("history_ops", wrap_action("GetDiff", Some(diff_params_adv)))
+        .await
+        .expect("Failed to get advanced diff");
+    assert!(diff_adv.is_string());
+    println!("Diff length (advanced): {}", diff_adv.as_str().unwrap().len());
 }
 
 #[tokio::test]

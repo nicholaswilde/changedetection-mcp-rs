@@ -216,6 +216,12 @@ pub struct HistoryOpsArgs {
     pub limit: Option<i32>,
     /// A tag to filter history across all watches. Used with ListAll.
     pub tag: Option<String>,
+    /// Enable word-level diffing for more granular comparisons.
+    pub word_diff: Option<String>,
+    /// Only show lines/content that changed (no surrounding context).
+    pub changes_only: Option<String>,
+    /// Ignore whitespace-only changes (spaces, tabs, newlines).
+    pub ignore_whitespace: Option<String>,
     #[serde(flatten)]
     pub common: CommonArgs,
 }
@@ -969,7 +975,15 @@ impl ServerHandler for McpServer {
                             let to = args.to_timestamp.ok_or_else(|| {
                                 Error::protocol(ErrorCode::InvalidParams, "Missing to_timestamp")
                             })?;
-                            let result = self.client.get_watch_diff(&uuid, &from, &to, args.format.as_deref()).await.map_err(|e| {
+                            let result = self.client.get_watch_diff(
+                                &uuid,
+                                &from,
+                                &to,
+                                args.format.as_deref(),
+                                args.word_diff.as_deref(),
+                                args.changes_only.as_deref(),
+                                args.ignore_whitespace.as_deref(),
+                            ).await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
                             Ok(serde_json::to_value(result)?)
@@ -1116,7 +1130,7 @@ impl ServerHandler for McpServer {
                         },
                         Tool {
                             name: "history_ops".to_string(),
-                            description: "Operations for managing and analyzing the historical data of watches. Actions include retrieving snapshot history, comparing snapshots (diffs), fetching specific snapshot content, capturing screenshots, and managing data retention limits.".to_string(),
+                            description: "Operations for managing and analyzing the historical data of watches. Actions include retrieving snapshot history, comparing snapshots (diffs) with advanced filtering (word-level, changes only, ignore whitespace), fetching specific snapshot content, capturing screenshots, and managing data retention limits.".to_string(),
                             input_schema: Some(get_schema::<HistoryOpsArgs>()),
                             annotations: None,
                         },
