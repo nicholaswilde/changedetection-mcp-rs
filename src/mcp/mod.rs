@@ -37,58 +37,75 @@ pub struct CommonArgs {
 #[derive(JsonSchema, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub enum WatchAction {
+    /// List all current watches. Can be filtered by tag or state.
     List,
+    /// Search for watches by URL or title using a query string.
     Search,
+    /// Retrieve detailed information for a specific watch by its UUID.
     Get,
+    /// Add a new URL as a watch. Optional tag and title can be provided.
     Create,
+    /// Modify the configuration of an existing watch by its UUID.
     Update,
+    /// Permanently remove a watch by its UUID.
     Delete,
+    /// Manually trigger a check for changes on a specific watch.
     Trigger,
+    /// Temporarily stop monitoring a specific watch.
     Pause,
+    /// Resume monitoring a previously paused watch.
     Unpause,
+    /// Disable notifications for a specific watch while still monitoring for changes.
     Mute,
+    /// Re-enable notifications for a specific watch.
     Unmute,
+    /// Add multiple URLs as new watches in a single operation.
     Import,
+    /// Set CSS, XPath, or JSONPath selectors for a specific watch to target specific content.
     SetSelectors,
+    /// Configure the fetching engine (e.g., 'playwright', 'basic') for a specific watch.
     SetFetcher,
+    /// Configure per-watch notification endpoints and custom alert messages.
     ConfigureNotifications,
+    /// List all watches that are currently in an error state.
     ListErrors,
+    /// List watches that use a specific change detection processor (e.g., 'restock_diff').
     ListByProcessor,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct WatchOpsArgs {
-    /// The action to perform
+    /// The specific operation to perform on watches.
     pub action: WatchAction,
-    /// The UUID of the watch (required for most actions)
+    /// The unique identifier (UUID) of the watch. Required for most actions except List, Search, and Import.
     pub uuid: Option<String>,
-    /// The URL to watch (for Create/Update)
+    /// The full URL of the website to monitor. Required for Create and Update.
     pub url: Option<String>,
-    /// Optional tag or tag filter
+    /// A tag to apply to the watch or to use as a filter for List operations.
     pub tag: Option<String>,
-    /// Optional title for the watch
+    /// A custom, human-readable name for the watch.
     pub title: Option<String>,
-    /// The search query (for Search)
+    /// The search string to find watches by URL or title. Required for Search.
     pub query: Option<String>,
-    /// Optional state filter (for List)
+    /// Filter watches by their current state (e.g., 'paused', 'unpaused', 'error').
     pub state: Option<String>,
-    /// The processor name (for ListByProcessor)
+    /// The name of the change detection processor to filter by (e.g., 'text_json_diff'). Required for ListByProcessor.
     pub processor: Option<String>,
-    /// List of URLs to import (for Import)
+    /// A list of URLs to be added as new watches. Required for Import.
     pub urls: Option<Vec<String>>,
-    /// Optional CSS filter
+    /// CSS selector to filter the content of the page (e.g., '#content', 'article.main').
     pub css_filter: Option<String>,
-    /// Optional XPath filter
+    /// XPath expression to target specific elements on the page.
     pub xpath_filter: Option<String>,
-    /// Optional JSON filter
+    /// JSONPath expression for monitoring changes in JSON data.
     pub json_filter: Option<String>,
-    /// The fetcher engine to use
+    /// The fetcher engine to use (e.g., 'html_webdriver', 'basic_http').
     pub fetcher: Option<String>,
-    /// List of Apprise-compatible notification URLs
+    /// A list of Apprise-compatible notification service URLs (e.g., 'tgram://...', 'mailto://...').
     pub notification_urls: Option<Vec<String>>,
-    /// Optional notification title override
+    /// Custom title for notifications sent from this watch.
     pub notification_title: Option<String>,
-    /// Optional notification body override
+    /// Custom body text for notifications sent from this watch.
     pub notification_body: Option<String>,
     #[serde(flatten)]
     pub common: CommonArgs,
@@ -97,20 +114,25 @@ pub struct WatchOpsArgs {
 #[derive(JsonSchema, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub enum TagAction {
+    /// List all tags across all watches. Supports pagination and field selection.
     List,
+    /// Create a new tag that can be used to categorize watches.
     Create,
+    /// Retrieve detailed information for a specific tag.
     Get,
+    /// Update the title or other properties of an existing tag.
     Update,
+    /// Permanently remove a tag. This does not delete associated watches.
     Delete,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct TagOpsArgs {
-    /// The action to perform
+    /// The specific operation to perform on tags.
     pub action: TagAction,
-    /// The UUID of the tag
+    /// The unique identifier (UUID) of the tag. Required for Get, Update, and Delete.
     pub uuid: Option<String>,
-    /// The title of the tag
+    /// The title of the tag. Required for Create and optionally for Update.
     pub title: Option<String>,
     #[serde(flatten)]
     pub common: CommonArgs,
@@ -119,19 +141,23 @@ pub struct TagOpsArgs {
 #[derive(JsonSchema, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub enum NotificationAction {
+    /// List all global notification endpoints.
     List,
+    /// Add a new Apprise-compatible URL to the global notification list.
     Add,
+    /// Overwrite the entire list of global notification endpoints.
     Update,
+    /// Remove a specific Apprise-compatible URL from the global list.
     Delete,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct NotificationOpsArgs {
-    /// The action to perform
+    /// The specific operation to perform on global notification settings.
     pub action: NotificationAction,
-    /// The Apprise-compatible URL to add or delete
+    /// A single Apprise-compatible notification URL (e.g., 'pntry://...'). Required for Add and Delete.
     pub notification_url: Option<String>,
-    /// The list of Apprise-compatible URLs for bulk update
+    /// A list of Apprise-compatible URLs. Required for Update.
     pub notification_urls: Option<Vec<String>>,
     #[serde(flatten)]
     pub common: CommonArgs,
@@ -140,32 +166,39 @@ pub struct NotificationOpsArgs {
 #[derive(JsonSchema, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub enum HistoryAction {
+    /// Retrieve a list of all snapshot timestamps for a specific watch.
     GetHistory,
+    /// Compare two snapshots and return the differences.
     GetDiff,
+    /// Retrieve the full content of a specific snapshot by its timestamp.
     GetContent,
+    /// Capture or retrieve a visual screenshot of the current watch state.
     GetScreenshot,
+    /// List all snapshots across all watches, optionally filtered by tag.
     ListAll,
+    /// Set a limit on the number of snapshots to retain for a specific watch.
     SetLimit,
+    /// Retrieve technical metadata for a specific snapshot (e.g., content-length).
     GetInfo,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct HistoryOpsArgs {
-    /// The action to perform
+    /// The specific operation to perform on watch history.
     pub action: HistoryAction,
-    /// The UUID of the watch
+    /// The UUID of the watch. Required for most actions except ListAll.
     pub uuid: Option<String>,
-    /// The timestamp of the snapshot
+    /// The timestamp of the snapshot to retrieve or inspect.
     pub timestamp: Option<String>,
-    /// The source snapshot timestamp (for GetDiff)
+    /// The timestamp of the first snapshot to compare. Required for GetDiff.
     pub from_timestamp: Option<String>,
-    /// The target snapshot timestamp (for GetDiff)
+    /// The timestamp of the second snapshot to compare. Required for GetDiff.
     pub to_timestamp: Option<String>,
-    /// The format of the output (e.g. "text", "markdown")
+    /// The output format for the diff (e.g., 'text', 'markdown', 'html').
     pub format: Option<String>,
-    /// The maximum number of snapshots to keep
+    /// The maximum number of snapshots to keep. Required for SetLimit.
     pub limit: Option<i32>,
-    /// Optional tag filter
+    /// A tag to filter history across all watches. Used with ListAll.
     pub tag: Option<String>,
     #[serde(flatten)]
     pub common: CommonArgs,
@@ -174,17 +207,23 @@ pub struct HistoryOpsArgs {
 #[derive(JsonSchema, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub enum SystemAction {
+    /// Retrieve ChangeDetection.io server version and instance statistics.
     GetInfo,
+    /// Retrieve the full OpenAPI specification for the ChangeDetection.io API.
     GetSpec,
+    /// List all available fetching engines (e.g., 'playwright', 'basic_http').
     ListFetchers,
+    /// List all configured system-level proxies.
     ListProxies,
+    /// Retrieve the full set of global instance-level settings.
     GetSettings,
+    /// List all available change detection processors (e.g., 'restock_diff').
     ListProcessors,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct SystemOpsArgs {
-    /// The action to perform
+    /// The specific operation to perform for system discovery and settings.
     pub action: SystemAction,
     #[serde(flatten)]
     pub common: CommonArgs,
@@ -193,13 +232,15 @@ pub struct SystemOpsArgs {
 #[derive(JsonSchema, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub enum MaintenanceAction {
+    /// Manually trigger a system-wide backup of all watch configurations and data.
     Backup,
+    /// Export the full list of watches and their configurations as a single JSON file.
     Export,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
 pub struct MaintenanceOpsArgs {
-    /// The action to perform
+    /// The specific maintenance task to perform.
     pub action: MaintenanceAction,
     #[serde(flatten)]
     pub common: CommonArgs,
@@ -1000,37 +1041,37 @@ impl ServerHandler for McpServer {
                     let tools = vec![
                         Tool {
                             name: "watch_ops".to_string(),
-                            description: "Consolidated operations for watches (list, search, get, create, update, delete, trigger, pause, mute, import, etc)".to_string(),
+                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, creating, updating, deleting, triggering checks, and configuring advanced monitoring settings (selectors, fetchers, notifications).".to_string(),
                             input_schema: Some(get_schema::<WatchOpsArgs>()),
                             annotations: None,
                         },
                         Tool {
                             name: "tag_ops".to_string(),
-                            description: "Consolidated operations for tags (list, create, get, update, delete)".to_string(),
+                            description: "Operations for managing watch categories (tags). Actions include listing, creating, retrieving, updating, and deleting tags used for watch organization.".to_string(),
                             input_schema: Some(get_schema::<TagOpsArgs>()),
                             annotations: None,
                         },
                         Tool {
                             name: "notification_ops".to_string(),
-                            description: "Consolidated operations for global notification endpoints (list, add, update, delete)".to_string(),
+                            description: "Operations for managing global, system-wide notification endpoints. Actions include listing, adding, updating, and deleting Apprise-compatible alert URLs.".to_string(),
                             input_schema: Some(get_schema::<NotificationOpsArgs>()),
                             annotations: None,
                         },
                         Tool {
                             name: "history_ops".to_string(),
-                            description: "Consolidated operations for watch history (snapshots, diffs, screenshots, retention)".to_string(),
+                            description: "Operations for managing and analyzing the historical data of watches. Actions include retrieving snapshot history, comparing snapshots (diffs), fetching specific snapshot content, capturing screenshots, and managing data retention limits.".to_string(),
                             input_schema: Some(get_schema::<HistoryOpsArgs>()),
                             annotations: None,
                         },
                         Tool {
                             name: "system_ops".to_string(),
-                            description: "Consolidated operations for system discovery and settings (info, spec, fetchers, proxies, processors)".to_string(),
+                            description: "Operations for discovering server-level configurations and capabilities. Actions include retrieving system info, API specifications, available fetching engines, configured proxies, global settings, and change detection processors.".to_string(),
                             input_schema: Some(get_schema::<SystemOpsArgs>()),
                             annotations: None,
                         },
                         Tool {
                             name: "maintenance_ops".to_string(),
-                            description: "Consolidated operations for maintenance tasks (backup, export)".to_string(),
+                            description: "Operations for critical system-wide maintenance tasks. Actions include triggering full system backups and performing complete watch configuration exports.".to_string(),
                             input_schema: Some(get_schema::<MaintenanceOpsArgs>()),
                             annotations: None,
                         },
