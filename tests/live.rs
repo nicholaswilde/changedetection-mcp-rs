@@ -960,3 +960,68 @@ async fn test_live_maintenance() {
         assert!(first_watch.get("url").is_some());
     }
 }
+
+#[tokio::test]
+async fn test_live_resources() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. List resources
+    let list_result = mcp
+        .handle_method("resources/list", None)
+        .await
+        .expect("Failed to list resources");
+    let resources = list_result.get("resources").unwrap().as_array().unwrap();
+    assert!(resources.iter().any(|r| r["uri"] == "system://openapi-spec"));
+    println!("Live Resources List: {:?}", resources);
+
+    // 2. Read system spec
+    let read_spec_params = serde_json::json!({ "uri": "system://openapi-spec" });
+    let spec_result = mcp
+        .handle_method("resources/read", Some(read_spec_params))
+        .await
+        .expect("Failed to read system spec");
+    let spec_contents = spec_result.get("contents").unwrap().as_array().unwrap();
+    assert!(spec_contents[0]["text"].as_str().unwrap().contains("openapi:"));
+    println!("Live Resource Read (system spec) Success");
+
+    // 3. Read latest watch snapshot (if any watches exist)
+    let watches_result = mcp
+        .handle_method("watch_ops", wrap_action("List", None))
+        .await
+        .expect("Failed to list watches");
+    
+    // Check if it's the new consolidated format or old
+    let watches = if let Some(w) = watches_result.get("watches") {
+        w.as_object().unwrap()
+    } else {
+        watches_result.as_object().unwrap()
+    };
+
+    if let Some(uuid) = watches.keys().next() {
+        let uri = format!("watches://{}/latest", uuid);
+        let read_watch_params = serde_json::json!({ "uri": uri });
+        let watch_result = mcp
+            .handle_method("resources/read", Some(read_watch_params))
+            .await;
+        
+        match watch_result {
+            Ok(res) => {
+                let contents = res.get("contents").unwrap().as_array().unwrap();
+                assert_eq!(contents[0]["uri"], uri);
+                println!("Live resource read success for {}", uri);
+            },
+            Err(e) => {
+                println!("Live resource read failed for {} (expected if no history): {}", uri, e);
+            }
+        }
+    }
+}
