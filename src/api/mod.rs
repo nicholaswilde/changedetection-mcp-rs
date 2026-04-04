@@ -74,6 +74,10 @@ pub struct Watch {
     pub body: Option<String>,
     #[serde(default)]
     pub headers: Option<HashMap<String, String>>,
+    #[serde(default)]
+    pub previous_md5: Option<serde_json::Value>,
+    #[serde(default)]
+    pub previous_md5_before_filters: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -870,12 +874,17 @@ impl Client {
             .get("content-type")
             .and_then(|v| v.to_str().ok())
             .map(|s| s.to_string());
+        let last_modified = headers
+            .get("last-modified")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
 
         Ok(serde_json::json!({
             "uuid": uuid,
             "timestamp": timestamp,
             "content_length": content_length,
             "content_type": content_type,
+            "last_modified": last_modified,
         }))
     }
 

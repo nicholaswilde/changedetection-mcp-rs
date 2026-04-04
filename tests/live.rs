@@ -928,6 +928,21 @@ async fn test_live_snapshot_content() {
         "Retrieved content length: {}",
         content.as_str().unwrap().len()
     );
+
+    // 3. Get snapshot metadata (GetInfo)
+    let info_params = serde_json::json!({
+        "uuid": uuid,
+        "timestamp": timestamp
+    });
+    let info = mcp
+        .handle_method("history_ops", wrap_action("GetInfo", Some(info_params)))
+        .await
+        .expect("Failed to get snapshot info");
+
+    assert!(info.is_object());
+    assert!(info.get("content_length").is_some());
+    assert!(info.get("content_type").is_some());
+    println!("Snapshot info: {:?}", info);
 }
 
 #[tokio::test]
