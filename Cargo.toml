@@ -25,6 +25,7 @@ dashmap = "5.5.3"
 futures = "0.3.30"
 async-trait = "0.1.80"
 uuid = { version = "1.8.0", features = ["v4", "serde"] }
+tokio-tungstenite = { version = "0.20.1", default-features = false, features = ["rustls-tls-native-roots"] }
 reqwest-middleware = { version = "0.5.1", features = ["json"] }
 reqwest-retry = { version = "0.9.1", features = ["tracing"] }
 reqwest-conditional-middleware = "0.4.0"
@@ -34,9 +35,11 @@ axum = "0.8.8"
 tower-http = { version = "0.6.8", features = ["cors", "trace"] }
 tracing-appender = "0.2.3"
 tracing-serde = "0.2.0"
-openssl = { version = "0.10", features = ["vendored"] }
 base64 = "0.22.1"
 serde_yaml = "0.9"
+
+[target.'cfg(not(windows))'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
 
 [dev-dependencies]
 wiremock = "0.6.0"
