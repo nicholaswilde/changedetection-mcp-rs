@@ -1,6 +1,6 @@
 [package]
 name = "changedetection-mcp-rs"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Nicholas Wilde <nicholas@nicholaswilde.io>"]
 description = "A Model Context Protocol (MCP) server for ChangeDetection.io"
