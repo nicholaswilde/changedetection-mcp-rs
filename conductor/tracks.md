@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: MCP Integration Features (Resources)
+## [x] Track: MCP Integration Features (Resources)
 Extend MCP server with Resources for snapshots and API specifications.
 - **Link:** [Track Folder](./tracks/mcp_resources_integration/)
 
