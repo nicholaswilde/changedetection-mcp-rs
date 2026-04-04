@@ -35,6 +35,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Advanced Snapshot Analysis:** Tools for retrieving technical metadata (content-length, content-type) for snapshots and bulk-listing history across multiple watches.
 - **Specialized Filtering:** High-intent tools for identifying problematic watches (filtering by error state) or auditing instance configurations (filtering by change detection processor).
 - **Retention Management:** Dedicated tools to manage watch history size and retention limits.
+- **System Maintenance:** High-intent tools for triggering system-wide backups and performing full watch configuration exports for data portability and safety.
 
 ## Design Principles
 - **Rust-powered Efficiency:** Leverage Rust's performance and safety for a reliable server.
