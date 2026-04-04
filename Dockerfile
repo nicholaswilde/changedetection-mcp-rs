@@ -1,7 +1,8 @@
-FROM rust:1.85-slim AS chef
+FROM rust:1.88-slim AS chef
 # We only pay the installation cost once,
 # it will be cached from the second build onwards
-RUN cargo install cargo-chef
+RUN apt-get update && apt-get install -y perl make && rm -rf /var/lib/apt/lists/*
+RUN cargo install --locked cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
