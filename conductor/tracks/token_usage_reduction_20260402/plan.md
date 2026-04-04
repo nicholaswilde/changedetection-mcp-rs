@@ -24,9 +24,9 @@
     - [ ] Remove the individual tool definitions and handlers from `src/mcp/mod.rs`.
 - [x] **Task: Conductor - User Manual Verification 'Phase 3: Testing & Migration' (Protocol in workflow.md)** 27f4ed4
 
-## Phase 4: Final Polish & Documentation
+## Phase 4: Final Polish & Documentation [checkpoint: b3e6c79]
 - [x] **Task: Optimize Descriptions** 7f5e16b
     - [ ] Refine the descriptions of the category tools and their `action` enums to be more descriptive for LLMs.
 - [x] **Task: Update Project Documentation** 265adf3
     - [ ] Update any documentation that references the individual MCP tools.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 4: Final Polish & Documentation' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 4: Final Polish & Documentation' (Protocol in workflow.md)** b3e6c79
