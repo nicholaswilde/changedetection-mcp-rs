@@ -4,8 +4,20 @@ use mcp_sdk_rs::server::ServerHandler;
 use std::env;
 use uuid::Uuid;
 
+fn wrap_action(action: &str, params: Option<serde_json::Value>) -> Option<serde_json::Value> {
+    let mut p = params.unwrap_or_else(|| serde_json::json!({}));
+    if let Some(obj) = p.as_object_mut() {
+        obj.insert("action".to_string(), serde_json::json!(action));
+    }
+    Some(p)
+}
+
 #[tokio::test]
 async fn test_live_tag_lifecycle() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -19,7 +31,7 @@ async fn test_live_tag_lifecycle() {
         "title": tag_name
     });
     let create_result = mcp
-        .handle_method("create_tag", Some(create_params))
+        .handle_method("tag_ops", wrap_action("Create", Some(create_params)))
         .await
         .expect("Failed to create tag");
 
@@ -38,7 +50,7 @@ async fn test_live_tag_lifecycle() {
     // 2. Get details
     let details_params = serde_json::json!({ "uuid": uuid });
     let details = mcp
-        .handle_method("get_tag_details", Some(details_params))
+        .handle_method("tag_ops", wrap_action("Get", Some(details_params)))
         .await
         .expect("Failed to get tag details");
     // ChangeDetection.io API might return title or name depending on version/endpoint
@@ -50,13 +62,16 @@ async fn test_live_tag_lifecycle() {
         "uuid": uuid,
         "title": format!("{}-updated", tag_name)
     });
-    mcp.handle_method("update_tag", Some(update_params))
+    mcp.handle_method("tag_ops", wrap_action("Update", Some(update_params)))
         .await
         .expect("Failed to update tag");
 
     // Verify update
     let updated_details = mcp
-        .handle_method("get_tag_details", Some(serde_json::json!({ "uuid": uuid })))
+        .handle_method(
+            "tag_ops",
+            wrap_action("Get", Some(serde_json::json!({ "uuid": uuid }))),
+        )
         .await
         .expect("Failed to get updated tag details");
     let updated_title = updated_details
@@ -68,18 +83,22 @@ async fn test_live_tag_lifecycle() {
 
     // 4. List tags
     let tags = mcp
-        .handle_method("list_tags", None)
+        .handle_method("tag_ops", wrap_action("List", None))
         .await
         .expect("Failed to list tags");
     println!("Tags list: {:?}", tags);
     // tags is now a map where keys are UUIDs
     assert!(tags.is_object());
-    let found = tags.as_object().unwrap().contains_key(&uuid);
+    let found = tags
+        .get("tags")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| tags.as_object().unwrap())
+        .contains_key(&uuid);
     assert!(found, "Created tag not found in list_tags map");
 
     // 5. Delete tag
     let delete_params = serde_json::json!({ "uuid": uuid });
-    mcp.handle_method("delete_tag", Some(delete_params))
+    mcp.handle_method("tag_ops", wrap_action("Delete", Some(delete_params)))
         .await
         .expect("Failed to delete tag");
     println!("Deleted tag: {}", uuid);
@@ -87,6 +106,10 @@ async fn test_live_tag_lifecycle() {
 
 #[tokio::test]
 async fn test_live_system_info() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -95,7 +118,7 @@ async fn test_live_system_info() {
     let mcp = McpServer::new(client);
 
     let result = mcp
-        .handle_method("get_system_info", None)
+        .handle_method("system_ops", wrap_action("GetInfo", None))
         .await
         .expect("Failed to get system info");
 
@@ -106,6 +129,10 @@ async fn test_live_system_info() {
 
 #[tokio::test]
 async fn test_live_list_watches() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -114,7 +141,7 @@ async fn test_live_list_watches() {
     let mcp = McpServer::new(client);
 
     let result = mcp
-        .handle_method("list_watches", None)
+        .handle_method("watch_ops", wrap_action("List", None))
         .await
         .expect("Failed to list watches");
 
@@ -124,6 +151,10 @@ async fn test_live_list_watches() {
 
 #[tokio::test]
 async fn test_live_watch_lifecycle() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -137,7 +168,7 @@ async fn test_live_watch_lifecycle() {
         "tag": "test-live"
     });
     let create_result = mcp
-        .handle_method("create_watch", Some(create_params))
+        .handle_method("watch_ops", wrap_action("Create", Some(create_params)))
         .await
         .expect("Failed to create watch");
     let uuid = create_result
@@ -151,7 +182,7 @@ async fn test_live_watch_lifecycle() {
     // 2. Get details
     let details_params = serde_json::json!({ "uuid": uuid });
     let details = mcp
-        .handle_method("get_watch_details", Some(details_params))
+        .handle_method("watch_ops", wrap_action("Get", Some(details_params)))
         .await
         .expect("Failed to get watch details");
     assert_eq!(
@@ -161,13 +192,13 @@ async fn test_live_watch_lifecycle() {
 
     // 3. Trigger check
     let trigger_params = serde_json::json!({ "uuid": uuid });
-    mcp.handle_method("trigger_check", Some(trigger_params))
+    mcp.handle_method("watch_ops", wrap_action("Trigger", Some(trigger_params)))
         .await
         .expect("Failed to trigger check");
 
     // 4. Delete watch
     let delete_params = serde_json::json!({ "uuid": uuid });
-    mcp.handle_method("delete_watch", Some(delete_params))
+    mcp.handle_method("watch_ops", wrap_action("Delete", Some(delete_params)))
         .await
         .expect("Failed to delete watch");
     println!("Deleted watch: {}", uuid);
@@ -175,6 +206,10 @@ async fn test_live_watch_lifecycle() {
 
 #[tokio::test]
 async fn test_live_search_filtering() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -192,7 +227,7 @@ async fn test_live_search_filtering() {
         "tag": unique_tag
     });
     let create_result = mcp
-        .handle_method("create_watch", Some(create_params))
+        .handle_method("watch_ops", wrap_action("Create", Some(create_params)))
         .await
         .expect("Failed to create watch");
     let uuid = create_result
@@ -207,14 +242,14 @@ async fn test_live_search_filtering() {
         "uuid": uuid,
         "title": watch_title
     });
-    mcp.handle_method("update_watch", Some(update_params))
+    mcp.handle_method("watch_ops", wrap_action("Update", Some(update_params)))
         .await
         .expect("Failed to update watch title");
 
     // 2. Test search_watches
     let search_params = serde_json::json!({ "query": watch_title });
     let search_results = mcp
-        .handle_method("search_watches", Some(search_params))
+        .handle_method("watch_ops", wrap_action("Search", Some(search_params)))
         .await
         .expect("Failed to search watches");
     assert!(search_results.is_object());
@@ -226,21 +261,28 @@ async fn test_live_search_filtering() {
     // 3. Test list_watches with tag filtering
     let list_params = serde_json::json!({ "tag": unique_tag });
     let list_results = mcp
-        .handle_method("list_watches", Some(list_params))
+        .handle_method("watch_ops", wrap_action("List", Some(list_params)))
         .await
         .expect("Failed to list watches with tag");
     assert!(list_results.is_object());
+    let list_results_obj = list_results
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| list_results.as_object().unwrap());
     assert_eq!(
-        list_results.as_object().unwrap().len(),
+        list_results_obj.len(),
         1,
         "Should find exactly one watch with the unique tag"
     );
-    assert!(list_results.as_object().unwrap().contains_key(&uuid));
+    assert!(list_results_obj.contains_key(&uuid));
 
     // 4. Test search with no results
     let search_params_empty = serde_json::json!({ "query": "NonExistentWatchTitle123456789" });
     let search_results_empty = mcp
-        .handle_method("search_watches", Some(search_params_empty))
+        .handle_method(
+            "watch_ops",
+            wrap_action("Search", Some(search_params_empty)),
+        )
         .await
         .expect("Failed to search watches");
     assert!(search_results_empty.is_object());
@@ -248,13 +290,13 @@ async fn test_live_search_filtering() {
 
     // 5. Cleanup
     let delete_params = serde_json::json!({ "uuid": uuid });
-    mcp.handle_method("delete_watch", Some(delete_params))
+    mcp.handle_method("watch_ops", wrap_action("Delete", Some(delete_params)))
         .await
         .expect("Failed to delete watch");
 
     // Cleanup tag (optional but good)
     let tags = mcp
-        .handle_method("list_tags", None)
+        .handle_method("tag_ops", wrap_action("List", None))
         .await
         .expect("Failed to list tags");
     if let Some(tag_uuid) = tags.as_object().and_then(|obj| {
@@ -264,13 +306,17 @@ async fn test_live_search_filtering() {
     }) {
         let delete_tag_params = serde_json::json!({ "uuid": tag_uuid });
         let _ = mcp
-            .handle_method("delete_tag", Some(delete_tag_params))
+            .handle_method("tag_ops", wrap_action("Delete", Some(delete_tag_params)))
             .await;
     }
 }
 
 #[tokio::test]
 async fn test_live_list_processors() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -279,7 +325,7 @@ async fn test_live_list_processors() {
     let mcp = McpServer::new(client);
 
     let result = mcp
-        .handle_method("list_processors", None)
+        .handle_method("system_ops", wrap_action("ListProcessors", None))
         .await
         .expect("Failed to list processors");
 
@@ -291,6 +337,10 @@ async fn test_live_list_processors() {
 
 #[tokio::test]
 async fn test_live_history_diffs() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -300,18 +350,22 @@ async fn test_live_history_diffs() {
 
     // 1. Find a watch with at least 2 history points
     let watches_result = mcp
-        .handle_method("list_watches", None)
+        .handle_method("watch_ops", wrap_action("List", None))
         .await
         .expect("Failed to list watches");
     let watches = watches_result
-        .as_object()
-        .expect("list_watches should return an object");
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap());
 
     let mut target_uuid = None;
     for (uuid, _) in watches {
         let history_params = serde_json::json!({ "uuid": uuid });
         if let Ok(history) = mcp
-            .handle_method("get_watch_history", Some(history_params))
+            .handle_method(
+                "history_ops",
+                wrap_action("GetHistory", Some(history_params)),
+            )
             .await
         {
             if history
@@ -332,7 +386,10 @@ async fn test_live_history_diffs() {
     // 2. Get history
     let history_params = serde_json::json!({ "uuid": uuid });
     let history = mcp
-        .handle_method("get_watch_history", Some(history_params))
+        .handle_method(
+            "history_ops",
+            wrap_action("GetHistory", Some(history_params)),
+        )
         .await
         .expect("Failed to get history");
     assert!(history.is_object());
@@ -346,7 +403,7 @@ async fn test_live_history_diffs() {
         "to_timestamp": "latest"
     });
     let diff = mcp
-        .handle_method("get_watch_diff", Some(diff_params))
+        .handle_method("history_ops", wrap_action("GetDiff", Some(diff_params)))
         .await
         .expect("Failed to get diff");
     assert!(diff.is_string());
@@ -364,7 +421,10 @@ async fn test_live_history_diffs() {
         "to_timestamp": t2
     });
     let diff_explicit = mcp
-        .handle_method("get_watch_diff", Some(diff_params_explicit))
+        .handle_method(
+            "history_ops",
+            wrap_action("GetDiff", Some(diff_params_explicit)),
+        )
         .await
         .expect("Failed to get explicit diff");
     assert!(diff_explicit.is_string());
@@ -381,7 +441,7 @@ async fn test_live_history_diffs() {
         "format": "markdown"
     });
     let diff_md = mcp
-        .handle_method("get_watch_diff", Some(diff_params_md))
+        .handle_method("history_ops", wrap_action("GetDiff", Some(diff_params_md)))
         .await
         .expect("Failed to get markdown diff");
     assert!(diff_md.is_string());
@@ -396,6 +456,10 @@ async fn test_live_history_diffs() {
 
 #[tokio::test]
 async fn test_live_get_full_spec() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -404,7 +468,7 @@ async fn test_live_get_full_spec() {
     let mcp = McpServer::new(client);
 
     let result = mcp
-        .handle_method("get_full_spec", None)
+        .handle_method("system_ops", wrap_action("GetSpec", None))
         .await
         .expect("Failed to get full spec");
 
@@ -417,6 +481,10 @@ async fn test_live_get_full_spec() {
 
 #[tokio::test]
 async fn test_live_notification_lifecycle() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -430,7 +498,7 @@ async fn test_live_notification_lifecycle() {
         "notification_url": test_url
     });
     let add_result = mcp
-        .handle_method("add_notification", Some(add_params))
+        .handle_method("notification_ops", wrap_action("Add", Some(add_params)))
         .await
         .expect("Failed to add notification");
 
@@ -438,11 +506,17 @@ async fn test_live_notification_lifecycle() {
 
     // 2. List notifications
     let list_result = mcp
-        .handle_method("list_notifications", None)
+        .handle_method("notification_ops", wrap_action("List", None))
         .await
         .expect("Failed to list notifications");
-    assert!(list_result.is_array());
-    let urls: Vec<String> = serde_json::from_value(list_result.clone()).unwrap();
+
+    let urls: Vec<String> = serde_json::from_value(
+        list_result
+            .get("notifications")
+            .unwrap_or(&list_result)
+            .clone(),
+    )
+    .unwrap();
     assert!(urls.contains(&test_url));
 
     // 3. Update notifications (replace all)
@@ -458,37 +532,59 @@ async fn test_live_notification_lifecycle() {
     let update_params = serde_json::json!({
         "notification_urls": new_urls
     });
-    mcp.handle_method("update_notifications", Some(update_params))
-        .await
-        .expect("Failed to update notifications");
+    mcp.handle_method(
+        "notification_ops",
+        wrap_action("Update", Some(update_params)),
+    )
+    .await
+    .expect("Failed to update notifications");
 
     // Verify update
     let list_result_updated = mcp
-        .handle_method("list_notifications", None)
+        .handle_method("notification_ops", wrap_action("List", None))
         .await
         .expect("Failed to list notifications after update");
-    let urls_updated: Vec<String> = serde_json::from_value(list_result_updated).unwrap();
+    let urls_updated: Vec<String> = serde_json::from_value(
+        list_result_updated
+            .get("notifications")
+            .unwrap_or(&list_result_updated)
+            .clone(),
+    )
+    .unwrap();
     assert!(urls_updated.contains(&updated_url));
     assert!(!urls_updated.contains(&test_url));
 
     // 4. Delete notification
     let delete_params = serde_json::json!({ "notification_url": updated_url });
-    mcp.handle_method("delete_notification", Some(delete_params))
-        .await
-        .expect("Failed to delete notification");
+    mcp.handle_method(
+        "notification_ops",
+        wrap_action("Delete", Some(delete_params)),
+    )
+    .await
+    .expect("Failed to delete notification");
     println!("Deleted notification: {}", updated_url);
 
     // Verify deletion
     let list_result_final = mcp
-        .handle_method("list_notifications", None)
+        .handle_method("notification_ops", wrap_action("List", None))
         .await
         .expect("Failed to list notifications after delete");
-    let urls_final: Vec<String> = serde_json::from_value(list_result_final).unwrap();
+    let urls_final: Vec<String> = serde_json::from_value(
+        list_result_final
+            .get("notifications")
+            .unwrap_or(&list_result_final)
+            .clone(),
+    )
+    .unwrap();
     assert!(!urls_final.contains(&updated_url));
 }
 
 #[tokio::test]
 async fn test_live_snapshot_content() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -498,12 +594,13 @@ async fn test_live_snapshot_content() {
 
     // 1. Find a watch with history
     let watches_result = mcp
-        .handle_method("list_watches", None)
+        .handle_method("watch_ops", wrap_action("List", None))
         .await
         .expect("Failed to list watches");
     let watches = watches_result
-        .as_object()
-        .expect("list_watches should return an object");
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap());
 
     let mut target_uuid = None;
     let mut target_timestamp = None;
@@ -511,7 +608,10 @@ async fn test_live_snapshot_content() {
     for (uuid, _) in watches {
         let history_params = serde_json::json!({ "uuid": uuid });
         if let Ok(history) = mcp
-            .handle_method("get_watch_history", Some(history_params))
+            .handle_method(
+                "history_ops",
+                wrap_action("GetHistory", Some(history_params)),
+            )
             .await
         {
             if let Some(obj) = history.as_object() {
@@ -540,7 +640,10 @@ async fn test_live_snapshot_content() {
         "timestamp": timestamp
     });
     let content = mcp
-        .handle_method("get_snapshot_content", Some(content_params))
+        .handle_method(
+            "history_ops",
+            wrap_action("GetContent", Some(content_params)),
+        )
         .await
         .expect("Failed to get snapshot content");
 
@@ -554,6 +657,10 @@ async fn test_live_snapshot_content() {
 
 #[tokio::test]
 async fn test_live_import_watches() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -569,7 +676,7 @@ async fn test_live_import_watches() {
 
     // 1. Import watches
     let result = mcp
-        .handle_method("import_watches", Some(params))
+        .handle_method("watch_ops", wrap_action("Import", Some(params)))
         .await
         .expect("Failed to import watches");
 
@@ -582,7 +689,7 @@ async fn test_live_import_watches() {
     for uuid_val in uuids {
         let uuid = uuid_val.as_str().unwrap();
         let delete_params = serde_json::json!({ "uuid": uuid });
-        mcp.handle_method("delete_watch", Some(delete_params))
+        mcp.handle_method("watch_ops", wrap_action("Delete", Some(delete_params)))
             .await
             .expect("Failed to delete watch after import test");
     }
@@ -591,6 +698,10 @@ async fn test_live_import_watches() {
 
 #[tokio::test]
 async fn test_live_state_management() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -600,12 +711,13 @@ async fn test_live_state_management() {
 
     // 1. Get a watch UUID
     let watches_result = mcp
-        .handle_method("list_watches", None)
+        .handle_method("watch_ops", wrap_action("List", None))
         .await
         .expect("Failed to list watches");
     let uuid = watches_result
-        .as_object()
-        .expect("list_watches should return an object")
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap())
         .keys()
         .next()
         .expect("No watches found for live test")
@@ -616,7 +728,7 @@ async fn test_live_state_management() {
     // 2. Pause watch
     let params = serde_json::json!({ "uuid": uuid });
     let result = mcp
-        .handle_method("pause_watch", Some(params.clone()))
+        .handle_method("watch_ops", wrap_action("Pause", Some(params.clone())))
         .await
         .expect("Failed to pause watch");
     assert_eq!(
@@ -626,7 +738,7 @@ async fn test_live_state_management() {
 
     // 3. Unpause watch
     let result = mcp
-        .handle_method("unpause_watch", Some(params.clone()))
+        .handle_method("watch_ops", wrap_action("Unpause", Some(params.clone())))
         .await
         .expect("Failed to unpause watch");
     assert_eq!(
@@ -636,7 +748,7 @@ async fn test_live_state_management() {
 
     // 4. Mute notifications
     let result = mcp
-        .handle_method("mute_notifications", Some(params.clone()))
+        .handle_method("watch_ops", wrap_action("Mute", Some(params.clone())))
         .await
         .expect("Failed to mute notifications");
     assert_eq!(
@@ -646,7 +758,7 @@ async fn test_live_state_management() {
 
     // 5. Unmute notifications
     let result = mcp
-        .handle_method("unmute_notifications", Some(params.clone()))
+        .handle_method("watch_ops", wrap_action("Unmute", Some(params.clone())))
         .await
         .expect("Failed to unmute notifications");
     assert_eq!(
@@ -659,6 +771,10 @@ async fn test_live_state_management() {
 
 #[tokio::test]
 async fn test_live_watch_filtering() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -669,7 +785,7 @@ async fn test_live_watch_filtering() {
     // 1. Filter by unpaused (most watches should be unpaused)
     let params = serde_json::json!({ "state": "unpaused" });
     let result = mcp
-        .handle_method("list_watches", Some(params))
+        .handle_method("watch_ops", wrap_action("List", Some(params)))
         .await
         .expect("Failed to list unpaused watches");
     assert!(result.is_object());
@@ -681,7 +797,7 @@ async fn test_live_watch_filtering() {
     // 2. Filter by paused
     let params = serde_json::json!({ "state": "paused" });
     let result = mcp
-        .handle_method("list_watches", Some(params))
+        .handle_method("watch_ops", wrap_action("List", Some(params)))
         .await
         .expect("Failed to list paused watches");
     assert!(result.is_object());
@@ -693,7 +809,7 @@ async fn test_live_watch_filtering() {
     // 3. Filter by error
     let params = serde_json::json!({ "state": "error" });
     let result = mcp
-        .handle_method("list_watches", Some(params))
+        .handle_method("watch_ops", wrap_action("List", Some(params)))
         .await
         .expect("Failed to list watches with errors");
     assert!(result.is_object());
@@ -705,6 +821,10 @@ async fn test_live_watch_filtering() {
 
 #[tokio::test]
 async fn test_live_watch_screenshot() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -714,12 +834,13 @@ async fn test_live_watch_screenshot() {
 
     // 1. Find any watch (we'll try to get a screenshot even if it 404s, to verify the tool handles it)
     let watches_result = mcp
-        .handle_method("list_watches", None)
+        .handle_method("watch_ops", wrap_action("List", None))
         .await
         .expect("Failed to list watches");
     let uuid = watches_result
-        .as_object()
-        .expect("list_watches should return an object")
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap())
         .keys()
         .next()
         .expect("No watches found for live test")
@@ -730,7 +851,7 @@ async fn test_live_watch_screenshot() {
     // 2. Get screenshot
     let params = serde_json::json!({ "uuid": uuid });
     let result = mcp
-        .handle_method("get_watch_screenshot", Some(params))
+        .handle_method("history_ops", wrap_action("GetScreenshot", Some(params)))
         .await;
 
     match result {
@@ -755,6 +876,10 @@ async fn test_live_watch_screenshot() {
 
 #[tokio::test]
 async fn test_live_advanced_filtering() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
     dotenv::dotenv().ok();
     let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
     let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
@@ -764,7 +889,7 @@ async fn test_live_advanced_filtering() {
 
     // 1. Test find_watches_by_error
     let error_result = mcp
-        .handle_method("find_watches_by_error", None)
+        .handle_method("watch_ops", wrap_action("ListErrors", None))
         .await
         .expect("Failed to find watches by error");
     assert!(error_result.is_object());
@@ -778,7 +903,7 @@ async fn test_live_advanced_filtering() {
         "processor": "text_json_diff"
     });
     let processor_result = mcp
-        .handle_method("list_watches_by_processor", Some(params))
+        .handle_method("watch_ops", wrap_action("ListByProcessor", Some(params)))
         .await
         .expect("Failed to list watches by processor");
     assert!(processor_result.is_object());
@@ -786,4 +911,52 @@ async fn test_live_advanced_filtering() {
         "Watches with text_json_diff (live): {}",
         processor_result.as_object().unwrap().len()
     );
+}
+
+#[tokio::test]
+async fn test_live_maintenance() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Test Backup
+    println!("Testing maintenance_ops Backup...");
+    let backup_result = mcp
+        .handle_method("maintenance_ops", wrap_action("Backup", None))
+        .await;
+
+    match backup_result {
+        Ok(result) => {
+            println!("Backup result: {:?}", result);
+            assert!(result.get("status").is_some());
+        }
+        Err(e) => {
+            // If the endpoint doesn't exist on the server, it might 404
+            println!("Backup failed (this is expected if /api/v1/backup is not supported by your version): {}", e);
+        }
+    }
+
+    // 2. Test Export
+    println!("Testing maintenance_ops Export...");
+    let export_result = mcp
+        .handle_method("maintenance_ops", wrap_action("Export", None))
+        .await
+        .expect("Failed to export watches");
+
+    assert!(export_result.get("watches").is_some());
+    let watches = export_result.get("watches").unwrap().as_object().unwrap();
+    println!("Exported {} watches", watches.len());
+    
+    if !watches.is_empty() {
+        let first_uuid = watches.keys().next().unwrap();
+        let first_watch = watches.get(first_uuid).unwrap();
+        assert!(first_watch.get("url").is_some());
+    }
 }
