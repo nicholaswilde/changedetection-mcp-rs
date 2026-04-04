@@ -20,8 +20,12 @@ async fn test_mcp_pagination_optimization() {
         );
     }
 
-    app.mock_get("/api/v1/watch", 200, Some(serde_json::Value::Object(response_body)))
-        .await;
+    app.mock_get(
+        "/api/v1/watch",
+        200,
+        Some(serde_json::Value::Object(response_body)),
+    )
+    .await;
 
     // Request page 1, per_page 2
     let params = json!({
@@ -31,7 +35,11 @@ async fn test_mcp_pagination_optimization() {
             "per_page": 2
         }
     });
-    let result = app.mcp.handle_method("watch_ops", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("watch_ops", Some(params))
+        .await
+        .unwrap();
 
     let watches = result.get("watches").unwrap().as_object().unwrap();
     assert_eq!(watches.len(), 2);
@@ -45,7 +53,11 @@ async fn test_mcp_pagination_optimization() {
             "per_page": 2
         }
     });
-    let result = app.mcp.handle_method("watch_ops", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("watch_ops", Some(params))
+        .await
+        .unwrap();
 
     let watches = result.get("watches").unwrap().as_object().unwrap();
     assert_eq!(watches.len(), 1);
@@ -73,11 +85,15 @@ async fn test_mcp_field_selection_optimization() {
         "action": "List",
         "fields": ["url"]
     });
-    let result = app.mcp.handle_method("watch_ops", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("watch_ops", Some(params))
+        .await
+        .unwrap();
 
     let watches = result.get("watches").unwrap().as_object().unwrap();
     let watch = watches.get("uuid-1").unwrap().as_object().unwrap();
-    
+
     assert!(watch.contains_key("url"));
     assert!(!watch.contains_key("title"));
     assert!(!watch.contains_key("paused"));
@@ -104,7 +120,11 @@ async fn test_mcp_system_info_field_selection() {
         "action": "GetInfo",
         "fields": ["version"]
     });
-    let result = app.mcp.handle_method("system_ops", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("system_ops", Some(params))
+        .await
+        .unwrap();
 
     assert!(result.as_object().unwrap().contains_key("version"));
     assert!(!result.as_object().unwrap().contains_key("uptime"));

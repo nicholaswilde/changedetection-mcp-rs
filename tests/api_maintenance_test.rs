@@ -41,10 +41,17 @@ async fn test_export_watches_to_json() {
     app.mock_get("/api/v1/watch", 200, Some(watches_list)).await;
 
     // Mock get_watch_details for each watch
-    app.mock_get(&format!("/api/v1/watch/{}", watch_uuid), 200, Some(watch_details.clone()))
-        .await;
+    app.mock_get(
+        &format!("/api/v1/watch/{}", watch_uuid),
+        200,
+        Some(watch_details.clone()),
+    )
+    .await;
 
     let export = app.client.export_watches_to_json().await.unwrap();
     assert_eq!(export.len(), 1);
-    assert_eq!(export.get(watch_uuid).unwrap().get("url").unwrap(), "https://example.com");
+    assert_eq!(
+        export.get(watch_uuid).unwrap().get("url").unwrap(),
+        "https://example.com"
+    );
 }

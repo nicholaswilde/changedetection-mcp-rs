@@ -26,16 +26,19 @@ async fn test_mcp_find_watches_by_error() {
     app.mock_get("/api/v1/watch", 200, Some(response_body))
         .await;
 
+    let params = json!({
+        "action": "ListErrors"
+    });
+
     let result = app
         .mcp
-        .handle_method("find_watches_by_error", None)
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
-    let error_watches: std::collections::HashMap<String, serde_json::Value> =
-        serde_json::from_value(result).unwrap();
 
-    assert_eq!(error_watches.len(), 1);
-    assert!(error_watches.contains_key("uuid1"));
+    let watches = result.get("watches").unwrap().as_object().unwrap();
+    assert_eq!(watches.len(), 1);
+    assert!(watches.contains_key("uuid1"));
 }
 
 #[tokio::test]
@@ -61,19 +64,19 @@ async fn test_mcp_list_watches_by_processor() {
         .await;
 
     let params = json!({
+        "action": "ListByProcessor",
         "processor": "restock_diff"
     });
 
     let result = app
         .mcp
-        .handle_method("list_watches_by_processor", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
-    let filtered_watches: std::collections::HashMap<String, serde_json::Value> =
-        serde_json::from_value(result).unwrap();
 
-    assert_eq!(filtered_watches.len(), 1);
-    assert!(filtered_watches.contains_key("uuid1"));
+    let watches = result.get("watches").unwrap().as_object().unwrap();
+    assert_eq!(watches.len(), 1);
+    assert!(watches.contains_key("uuid1"));
 }
 
 #[tokio::test]
@@ -84,6 +87,5 @@ async fn test_mcp_tools_list_filtering() {
     let tools = result.get("tools").unwrap().as_array().unwrap();
 
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
-    assert!(tool_names.contains(&"find_watches_by_error"));
-    assert!(tool_names.contains(&"list_watches_by_processor"));
+    assert!(tool_names.contains(&"watch_ops"));
 }

@@ -19,10 +19,13 @@ async fn test_mcp_pause_watch() {
     )
     .await;
 
-    let params = json!({ "uuid": uuid });
+    let params = json!({
+        "action": "Pause",
+        "uuid": uuid
+    });
     let result = app
         .mcp
-        .handle_method("pause_watch", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
@@ -44,10 +47,13 @@ async fn test_mcp_unpause_watch() {
     )
     .await;
 
-    let params = json!({ "uuid": uuid });
+    let params = json!({
+        "action": "Unpause",
+        "uuid": uuid
+    });
     let result = app
         .mcp
-        .handle_method("unpause_watch", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
@@ -69,10 +75,13 @@ async fn test_mcp_mute_notifications() {
     )
     .await;
 
-    let params = json!({ "uuid": uuid });
+    let params = json!({
+        "action": "Mute",
+        "uuid": uuid
+    });
     let result = app
         .mcp
-        .handle_method("mute_notifications", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
@@ -94,10 +103,13 @@ async fn test_mcp_unmute_notifications() {
     )
     .await;
 
-    let params = json!({ "uuid": uuid });
+    let params = json!({
+        "action": "Unmute",
+        "uuid": uuid
+    });
     let result = app
         .mcp
-        .handle_method("unmute_notifications", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
@@ -113,8 +125,5 @@ async fn test_mcp_tools_list_state_management() {
     let tools = result.get("tools").unwrap().as_array().unwrap();
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
 
-    assert!(tool_names.contains(&"pause_watch"));
-    assert!(tool_names.contains(&"unpause_watch"));
-    assert!(tool_names.contains(&"mute_notifications"));
-    assert!(tool_names.contains(&"unmute_notifications"));
+    assert!(tool_names.contains(&"watch_ops"));
 }

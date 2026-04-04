@@ -112,7 +112,11 @@ async fn test_mcp_tag_ops_list() {
         .await;
 
     let params = json!({ "action": "List" });
-    let result = app.mcp.handle_method("tag_ops", Some(params)).await.unwrap();
+    let result = app
+        .mcp
+        .handle_method("tag_ops", Some(params))
+        .await
+        .unwrap();
 
     let tags = result.get("tags").unwrap().as_object().unwrap();
     assert!(tags.get("tag_id_1").is_some());
@@ -150,7 +154,7 @@ async fn test_mcp_tools_list_consolidated() {
     let result = app.mcp.handle_method("tools/list", None).await.unwrap();
 
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    
+
     let tool_names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert!(tool_names.contains(&"watch_ops"));
     assert!(tool_names.contains(&"tag_ops"));

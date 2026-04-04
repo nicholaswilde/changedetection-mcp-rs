@@ -146,12 +146,8 @@ impl Client {
 
     pub async fn list_fetchers(&self) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/fetchers", self.base_url);
-        let response = self
-            .http_client
-            .get(&url)
-            .send()
-            .await?;
-        
+        let response = self.http_client.get(&url).send().await?;
+
         if response.status() == reqwest::StatusCode::NOT_FOUND {
             // Fallback to static list if endpoint not found
             return Ok(serde_json::json!({
@@ -161,23 +157,25 @@ impl Client {
             }));
         }
 
-        let fetchers = response.error_for_status()?.json::<serde_json::Value>().await?;
+        let fetchers = response
+            .error_for_status()?
+            .json::<serde_json::Value>()
+            .await?;
         Ok(fetchers)
     }
 
     pub async fn list_proxies(&self) -> Result<HashMap<String, String>, ApiError> {
         let url = format!("{}/api/v1/proxies", self.base_url);
-        let response = self
-            .http_client
-            .get(&url)
-            .send()
-            .await?;
-        
+        let response = self.http_client.get(&url).send().await?;
+
         if response.status() == reqwest::StatusCode::NOT_FOUND {
             return Ok(HashMap::new());
         }
 
-        let proxies = response.error_for_status()?.json::<HashMap<String, String>>().await?;
+        let proxies = response
+            .error_for_status()?
+            .json::<HashMap<String, String>>()
+            .await?;
         Ok(proxies)
     }
 
@@ -188,10 +186,13 @@ impl Client {
         for (name, url) in proxies {
             // In a real implementation, we would try to use the proxy.
             // For now, we'll just return the list with a 'configured' status.
-            results.insert(name, serde_json::json!({
-                "url": url,
-                "status": "configured"
-            }));
+            results.insert(
+                name,
+                serde_json::json!({
+                    "url": url,
+                    "status": "configured"
+                }),
+            );
         }
 
         Ok(serde_json::to_value(results)?)
@@ -273,12 +274,8 @@ impl Client {
 
     pub async fn get_watch_details(&self, uuid: &str) -> Result<Watch, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self
-            .http_client
-            .get(&url)
-            .send()
-            .await?;
-        
+        let response = self.http_client.get(&url).send().await?;
+
         let status = response.status();
         let text = response.text().await?;
         println!("Get watch details status: {}, body: {}", status, text);
@@ -287,7 +284,10 @@ impl Client {
             let watch = serde_json::from_str::<Watch>(&text)?;
             Ok(watch)
         } else {
-            Err(ApiError::Internal(format!("HTTP error {}: {}", status, text)))
+            Err(ApiError::Internal(format!(
+                "HTTP error {}: {}",
+                status, text
+            )))
         }
     }
 
@@ -320,13 +320,8 @@ impl Client {
         payload: serde_json::Value,
     ) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
-        let response = self
-            .http_client
-            .put(&url)
-            .json(&payload)
-            .send()
-            .await?;
-        
+        let response = self.http_client.put(&url).json(&payload).send().await?;
+
         let status = response.status();
         let text = response.text().await?;
         println!("Update watch status: {}, body: {}", status, text);
@@ -340,17 +335,18 @@ impl Client {
                 return Ok(serde_json::json!({"status": "success"}));
             }
             if trimmed.starts_with('{') || trimmed.starts_with('[') {
-                match serde_json::from_str::<serde_json::Value>(trimmed) {
-                    Ok(json) => return Ok(json),
-                    Err(_) => {}
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(trimmed) {
+                    return Ok(json);
                 }
             }
             Ok(serde_json::json!({ "status": trimmed.trim_matches('"') }))
         } else {
-            Err(ApiError::Internal(format!("HTTP error {}: {}", status, text)))
+            Err(ApiError::Internal(format!(
+                "HTTP error {}: {}",
+                status, text
+            )))
         }
     }
-
 
     pub async fn delete_watch(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
@@ -380,13 +376,22 @@ impl Client {
             .await?
             .error_for_status()?;
         let text = response.text().await?;
-        if text.trim().is_empty() {
+        let trimmed = text.trim();
+        if trimmed.is_empty() {
             return Ok(serde_json::json!({"status": "success"}));
         }
-        Ok(serde_json::json!({"status": text}))
+        if trimmed.starts_with('{') || trimmed.starts_with('[') {
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(trimmed) {
+                return Ok(json);
+            }
+        }
+        Ok(serde_json::json!({"status": trimmed.trim_matches('"')}))
     }
 
-    pub async fn trigger_recheck_all(&self, tag: Option<&str>) -> Result<serde_json::Value, ApiError> {
+    pub async fn trigger_recheck_all(
+        &self,
+        tag: Option<&str>,
+    ) -> Result<serde_json::Value, ApiError> {
         let url = if let Some(t) = tag {
             // Find tag UUID first if it's a name, or use it directly if it looks like a UUID
             // Actually, the API for /tag/{uuid} recheck=true uses UUID.
@@ -449,6 +454,7 @@ impl Client {
         Ok(history)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn get_watch_diff(
         &self,
         uuid: &str,
@@ -478,7 +484,7 @@ impl Client {
         }
 
         if !params.is_empty() {
-            url.push_str("?");
+            url.push('?');
             url.push_str(&params.join("&"));
         }
 
@@ -880,12 +886,8 @@ impl Client {
 
     pub async fn list_processors(&self) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/processors", self.base_url);
-        let response = self
-            .http_client
-            .get(&url)
-            .send()
-            .await?;
-        
+        let response = self.http_client.get(&url).send().await?;
+
         if response.status().is_success() {
             let processors = response.json::<serde_json::Value>().await?;
             return Ok(processors);

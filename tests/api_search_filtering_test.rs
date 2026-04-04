@@ -53,7 +53,11 @@ async fn test_list_watches_by_processor() {
     app.mock_get("/api/v1/watch", 200, Some(response_body))
         .await;
 
-    let restock_watches = app.client.list_watches_by_processor("restock_diff").await.unwrap();
+    let restock_watches = app
+        .client
+        .list_watches_by_processor("restock_diff")
+        .await
+        .unwrap();
     assert_eq!(restock_watches.len(), 1);
     assert!(restock_watches.contains_key("uuid1"));
 }

@@ -19,7 +19,8 @@ components:
 
     app.mock_get_text("/api/v1/full-spec", 200, mock_spec).await;
 
-    let processors = app.client.list_processors().await.unwrap();
+    let processors_val = app.client.list_processors().await.unwrap();
+    let processors: Vec<String> = serde_json::from_value(processors_val).unwrap();
     assert_eq!(processors.len(), 3);
     assert!(processors.contains(&"restock_diff".to_string()));
     assert!(processors.contains(&"text_json_diff".to_string()));

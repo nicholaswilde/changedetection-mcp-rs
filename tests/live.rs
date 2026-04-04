@@ -323,7 +323,9 @@ async fn test_live_conditions() {
         .get("conditions")
         .and_then(|v| v.as_array())
         .expect("Missing conditions in details");
-    assert!(conds.iter().any(|c| c["field"] == "page_title" && c["operator"] == "contains" && c["value"] == "Example"));
+    assert!(conds.iter().any(|c| c["field"] == "page_title"
+        && c["operator"] == "contains"
+        && c["value"] == "Example"));
     assert_eq!(details["conditions_match_logic"], "ANY");
 
     // 4. Cleanup
@@ -466,8 +468,11 @@ async fn test_live_bulk_retention() {
         )
         .await
         .expect("Failed to list watches by tag");
-    
-    let watches = watches_result.get("watches").and_then(|v| v.as_object()).unwrap_or_else(|| watches_result.as_object().unwrap());
+
+    let watches = watches_result
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap());
     for uuid in watches.keys() {
         let _ = mcp
             .handle_method(
@@ -535,9 +540,12 @@ async fn test_live_request_config() {
         "headers": headers,
         "body": body
     });
-    mcp.handle_method("watch_ops", wrap_action("SetRequestConfig", Some(config_params)))
-        .await
-        .expect("Failed to set request config");
+    mcp.handle_method(
+        "watch_ops",
+        wrap_action("SetRequestConfig", Some(config_params)),
+    )
+    .await
+    .expect("Failed to set request config");
 
     // 3. Verify config (using Get)
     let get_params = serde_json::json!({ "uuid": uuid });
@@ -918,7 +926,10 @@ async fn test_live_history_diffs() {
         .await
         .expect("Failed to get advanced diff");
     assert!(diff_adv.is_string());
-    println!("Diff length (advanced): {}", diff_adv.as_str().unwrap().len());
+    println!(
+        "Diff length (advanced): {}",
+        diff_adv.as_str().unwrap().len()
+    );
 }
 
 #[tokio::test]

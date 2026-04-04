@@ -86,10 +86,8 @@ async fn test_trigger_check() {
         "status": "success"
     });
 
-    app.mock_get_with_query(
-        &format!("/api/v1/watch/{}", uuid),
-        "recheck",
-        "1",
+    app.mock_get(
+        &format!("/api/v1/watch/{}/recheck", uuid),
         200,
         Some(response_body),
     )
@@ -137,7 +135,7 @@ async fn test_get_watch_diff() {
 
     let diff = app
         .client
-        .get_watch_diff(uuid, from, to, None)
+        .get_watch_diff(uuid, from, to, None, None, None, None)
         .await
         .unwrap();
     assert_eq!(diff, response_body);

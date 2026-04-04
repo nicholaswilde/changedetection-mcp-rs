@@ -38,14 +38,17 @@ async fn test_mcp_list_watches_filter_paused() {
     app.mock_get("/api/v1/watch/uuid-2", 200, Some(details_2))
         .await;
 
-    let params = json!({ "state": "paused" });
+    let params = json!({
+        "action": "List",
+        "state": "paused"
+    });
     let result = app
         .mcp
-        .handle_method("list_watches", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
-    let result_obj = result.as_object().unwrap();
+    let result_obj = result.get("watches").unwrap().as_object().unwrap();
     assert_eq!(result_obj.len(), 1);
     assert!(result_obj.contains_key("uuid-1"));
     assert!(!result_obj.contains_key("uuid-2"));
@@ -75,14 +78,17 @@ async fn test_mcp_list_watches_filter_unpaused() {
     )
     .await;
 
-    let params = json!({ "state": "unpaused" });
+    let params = json!({
+        "action": "List",
+        "state": "unpaused"
+    });
     let result = app
         .mcp
-        .handle_method("list_watches", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
-    let result_obj = result.as_object().unwrap();
+    let result_obj = result.get("watches").unwrap().as_object().unwrap();
     assert_eq!(result_obj.len(), 1);
     assert!(result_obj.contains_key("uuid-2"));
 }
@@ -111,14 +117,17 @@ async fn test_mcp_list_watches_filter_error() {
     )
     .await;
 
-    let params = json!({ "state": "error" });
+    let params = json!({
+        "action": "List",
+        "state": "error"
+    });
     let result = app
         .mcp
-        .handle_method("list_watches", Some(params))
+        .handle_method("watch_ops", Some(params))
         .await
         .unwrap();
 
-    let result_obj = result.as_object().unwrap();
+    let result_obj = result.get("watches").unwrap().as_object().unwrap();
     assert_eq!(result_obj.len(), 1);
     assert!(result_obj.contains_key("uuid-1"));
 }

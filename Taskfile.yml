@@ -131,7 +131,7 @@ tasks:
   test:live:
     desc: Run live integration tests against a real ChangeDetection.io instance
     cmds:
-      - cargo test --test live -- --nocapture
+      - RUN_LIVE_TESTS=1 cargo test --test live -- --nocapture
 
   test:hurl:
     desc: Run Hurl integration tests (requires running server)

@@ -1,7 +1,0 @@
-{
-  "id": "maintenance_export",
-  "name": "Maintenance & Export",
-  "description": "Tools for system maintenance tasks (backups, JSON exports).",
-  "status": "todo",
-  "created_at": "2026-04-02T10:00:00Z"
-}

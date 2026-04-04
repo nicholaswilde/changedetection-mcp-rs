@@ -47,8 +47,12 @@ async fn test_mcp_maintenance_ops_export() {
     app.mock_get("/api/v1/watch", 200, Some(watches_list)).await;
 
     // Mock get_watch_details for each watch
-    app.mock_get(&format!("/api/v1/watch/{}", watch_uuid), 200, Some(watch_details.clone()))
-        .await;
+    app.mock_get(
+        &format!("/api/v1/watch/{}", watch_uuid),
+        200,
+        Some(watch_details.clone()),
+    )
+    .await;
 
     let params = json!({ "action": "Export" });
     let result = app
@@ -59,7 +63,10 @@ async fn test_mcp_maintenance_ops_export() {
 
     let export = result.get("watches").unwrap().as_object().unwrap();
     assert_eq!(export.len(), 1);
-    assert_eq!(export.get(watch_uuid).unwrap().get("url").unwrap(), "https://example.com");
+    assert_eq!(
+        export.get(watch_uuid).unwrap().get("url").unwrap(),
+        "https://example.com"
+    );
 }
 
 #[tokio::test]

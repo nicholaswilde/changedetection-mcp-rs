@@ -27,13 +27,16 @@ mod tests {
         // For now, let's keep it simple: top-level fields only.
         let fields = vec!["id".to_string(), "metadata".to_string()];
         let filtered = changedetection_mcp_rs::mcp::helpers::filter_fields(&data, &fields);
-        assert_eq!(filtered, json!({"id": "123", "metadata": {"created_at": "2023-01-01", "owner": "admin"}}));
+        assert_eq!(
+            filtered,
+            json!({"id": "123", "metadata": {"created_at": "2023-01-01", "owner": "admin"}})
+        );
     }
 
     #[test]
     fn test_pagination_vec() {
         let items = vec![1, 2, 3, 4, 5];
-        
+
         // Page 1, size 2
         let (paged, total) = changedetection_mcp_rs::mcp::helpers::paginate_vec(&items, 1, 2);
         assert_eq!(paged, vec![&1, &2]);
@@ -64,7 +67,7 @@ mod tests {
         items.insert("c", 3);
         items.insert("d", 4);
         items.insert("e", 5);
-        
+
         // Page 1, size 2
         let (paged, total) = changedetection_mcp_rs::mcp::helpers::paginate_map(&items, 1, 2);
         assert_eq!(paged.len(), 2);

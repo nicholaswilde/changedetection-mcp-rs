@@ -10,45 +10,34 @@ A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MC
 
 ## ✨ Features
 
-- **Watch Management:**
-    - `list_watches`: List all watches, optionally filtered by tag or state (paused, unpaused, error).
-    - `search_watches`: Search for watches by URL or title.
-    - `get_watch_details`: Get details of a specific watch.
-    - `create_watch`: Create a new watch.
-    - `update_watch`: Update a specific watch.
-    - `delete_watch`: Delete a specific watch.
-    - `trigger_check`: Trigger a re-check for a specific watch.
-    - `import_watches`: Bulk import a list of URLs as new watches.
-    - `pause_watch`: Pause a watch (stop checking for changes).
-    - `unpause_watch`: Resume checking for changes on a watch.
-    - `mute_notifications`: Stop sending notifications for a watch.
-    - `unmute_notifications`: Resume sending notifications for a watch.
-- **Tag Management:**
-    - `list_tags`: List all tags.
-    - `create_tag`: Create a new tag.
-    - `get_tag_details`: Get details of a specific tag.
-    - `update_tag`: Update a specific tag.
-    - `delete_tag`: Delete a specific tag.
-- **Notification Management:**
-    - `list_notifications`: List all global notification endpoints.
-    - `add_notification`: Add a new global notification endpoint.
-    - `update_notifications`: Replace all global notification endpoints.
-    - `delete_notification`: Delete a global notification endpoint.
-- **Snapshot & Diff Tools:**
-    - `get_watch_history`: Get the history of snapshots for a specific watch.
-    - `get_watch_diff`: Get the difference between two snapshots of a watch.
-    - `get_snapshot_content`: Get the full content of a specific watch snapshot.
-    - `get_watch_screenshot`: Get a visual snapshot (screenshot) of a specific watch.
-- **System Discovery:**
-    - `get_system_info`: Retrieve ChangeDetection.io system status and version.
-    - `get_full_spec`: Retrieve the full OpenAPI specification of the instance.
-    - `list_processors`: List all available change detection processors.
-- **Multi-Transport Support:**
-  - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
-  - **HTTP/JSON-RPC:** Remote transport for testing and external clients.
-- **Robust Configuration:** Supports configuration via CLI arguments and environment variables.
-- **Security & Privacy:**
-  - **API Key Authentication:** Connects to ChangeDetection.io using the `x-api-key` header.
+The server provides a consolidated set of tools for efficient interaction, optimized for lower token usage and better context management.
+
+- **`watch_ops`**: Comprehensive watch management.
+    - **Actions:** `List`, `Search`, `Get`, `Create`, `Update`, `Delete`, `Trigger`, `Pause`, `Unpause`, `Mute`, `Unmute`, `Import`, `SetSelectors`, `SetFetcher`, `ConfigureNotifications`, `ListErrors`, `ListByProcessor`.
+- **`tag_ops`**: Management of watch tags.
+    - **Actions:** `List`, `Create`, `Get`, `Update`, `Delete`.
+- **`notification_ops`**: Global notification endpoint management.
+    - **Actions:** `List`, `Add`, `Update`, `Delete`.
+- **`history_ops`**: Watch history, snapshots, and diffs.
+    - **Actions:** `GetHistory`, `GetDiff`, `GetContent`, `GetScreenshot`, `ListAll`, `SetLimit`, `GetInfo`.
+- **`system_ops`**: System discovery and global settings.
+    - **Actions:** `GetInfo`, `GetSpec`, `ListFetchers`, `ListProxies`, `GetSettings`, `ListProcessors`.
+- **`maintenance_ops`**: System maintenance tasks.
+    - **Actions:** `Backup`, `Export`.
+
+### 📚 MCP Resources
+
+The server exposes key data through the MCP Resources protocol, allowing LLMs to read content directly via URIs.
+
+- **`watches://{uuid}/latest`**: Access the most recent snapshot content for a specific watch.
+- **`system://openapi-spec`**: Retrieve the full OpenAPI specification for the ChangeDetection.io API.
+
+### 🚀 Optimization Features
+
+- **Consolidated Tools:** Reduces tool discovery overhead by grouping related operations.
+- **Pagination:** Supports `page` and `per_page` parameters for list operations.
+- **Field Selection:** Allows requesting only specific fields to minimize response size.
+- **Multi-Transport Support:** Stdio (default) and HTTP/JSON-RPC.
 
 ## 🛠️ Build
 
@@ -61,7 +50,15 @@ To build the project, you need a Rust toolchain installed.
 task build:local
 ```
 
-The binary will be available at `target/release/changedetection-mcp-rs`.
+### Cross-Compilation
+
+```bash
+# Build for amd64 (Linux)
+task build:amd64
+
+# Build for arm64 (Linux)
+task build:arm64
+```
 
 ## 🚀 Usage
 
@@ -100,11 +97,14 @@ Add the following to your `claude_desktop_config.json`:
 The project uses [go-task](https://taskfile.dev/) for development tasks.
 
 ```bash
-# Run unit tests
+# Run all CI checks (fmt, lint, unit tests)
+task test:ci
+
+# Run unit tests only
 task test
 
-# Run Hurl integration tests (requires running server)
-task test:hurl
+# Run MCP integration tests
+task test:integration
 
 # Run MCP Inspector (requires npx)
 task inspector
@@ -121,7 +121,7 @@ task coverage
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow standard Rust coding conventions and ensure all tests pass (`task check`) before submitting features.
+Contributions are welcome! Please follow standard Rust coding conventions and ensure all tests pass (`task test:ci`) before submitting features.
 
 ## ⚖️ License
 

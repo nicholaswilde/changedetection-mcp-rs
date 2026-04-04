@@ -7,16 +7,13 @@ use serde_json::json;
 async fn test_list_fetchers() {
     let app = MockApp::new().await;
 
-    let response_body = json!([
-        "html_requests",
-        "html_webdriver",
-        "playwright"
-    ]);
+    let response_body = json!(["html_requests", "html_webdriver", "playwright"]);
 
     app.mock_get("/api/v1/fetchers", 200, Some(response_body))
         .await;
 
-    let fetchers = app.client.list_fetchers().await.unwrap();
+    let fetchers_val = app.client.list_fetchers().await.unwrap();
+    let fetchers: Vec<String> = serde_json::from_value(fetchers_val).unwrap();
     assert_eq!(fetchers.len(), 3);
     assert!(fetchers.contains(&"html_requests".to_string()));
 }
@@ -34,7 +31,10 @@ async fn test_list_proxies() {
         .await;
 
     let proxies = app.client.list_proxies().await.unwrap();
-    assert_eq!(proxies.get("proxy1").unwrap(), "http://user:pass@1.2.3.4:8080");
+    assert_eq!(
+        proxies.get("proxy1").unwrap(),
+        "http://user:pass@1.2.3.4:8080"
+    );
 }
 
 #[tokio::test]
@@ -53,5 +53,12 @@ async fn test_get_global_settings() {
         .await;
 
     let settings = app.client.get_global_settings().await.unwrap();
-    assert_eq!(settings.get("default_check_interval").unwrap().as_i64().unwrap(), 3600);
+    assert_eq!(
+        settings
+            .get("default_check_interval")
+            .unwrap()
+            .as_i64()
+            .unwrap(),
+        3600
+    );
 }

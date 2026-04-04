@@ -1,14 +1,14 @@
 mod common;
 use common::MockApp;
+use serde_json::json;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
-use serde_json::json;
 
 #[tokio::test]
 async fn test_list_all_history() {
     let app = MockApp::new().await;
     let uuid = "test-uuid";
-    
+
     // 1. Mock list_watches
     Mock::given(method("GET"))
         .and(path("/api/v1/watch"))
@@ -37,7 +37,7 @@ async fn test_list_all_history() {
 async fn test_set_history_limit() {
     let app = MockApp::new().await;
     let uuid = "test-uuid";
-    
+
     Mock::given(method("PUT"))
         .and(path(format!("/api/v1/watch/{}", uuid)))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({"status": "success"})))
@@ -54,12 +54,17 @@ async fn test_get_snapshot_info() {
     let uuid = "test-uuid";
     let timestamp = "1234567890";
     let body = "some content";
-    
+
     Mock::given(method("GET"))
-        .and(path(format!("/api/v1/watch/{}/history/{}", uuid, timestamp)))
-        .respond_with(ResponseTemplate::new(200)
-            .append_header("content-type", "text/plain")
-            .set_body_string(body))
+        .and(path(format!(
+            "/api/v1/watch/{}/history/{}",
+            uuid, timestamp
+        )))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .append_header("content-type", "text/plain")
+                .set_body_string(body),
+        )
         .mount(&app.server)
         .await;
 

@@ -42,7 +42,11 @@ pub fn paginate_vec<T>(items: &[T], page: usize, per_page: usize) -> (Vec<&T>, u
 }
 
 /// Paginates any collection that can be iterated as pairs (like HashMap or BTreeMap).
-pub fn paginate_map<'a, K, V, I>(items: I, page: usize, per_page: usize) -> (Vec<(&'a K, &'a V)>, usize)
+pub fn paginate_map<'a, K, V, I>(
+    items: I,
+    page: usize,
+    per_page: usize,
+) -> (Vec<(&'a K, &'a V)>, usize)
 where
     I: IntoIterator<Item = (&'a K, &'a V)>,
 {
@@ -59,7 +63,7 @@ where
     }
 
     let end = (start + per_page).min(total);
-    let paged = all_items[start..end].iter().cloned().collect();
+    let paged = all_items[start..end].to_vec();
 
     (paged, total)
 }
