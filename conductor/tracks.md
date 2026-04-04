@@ -4,12 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Automation and Conditions
-Implement browser automation steps, trigger conditions, and custom request configurations.
-- **Link:** [Track Folder](./tracks/automation_and_conditions_20260403/)
-
----
-
 ## [ ] Track: Analysis and Visualization
 Implement enhanced diffing, technical metadata retrieval, and favicon support.
 - **Link:** [Track Folder](./analysis_and_visualization_20260403/)
