@@ -617,7 +617,8 @@ impl Client {
         let mut payload = HashMap::new();
         payload.insert("include_filters", serde_json::json!(filters));
 
-        self.update_watch(uuid, serde_json::to_value(payload)?).await
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
     }
 
     pub async fn set_watch_fetcher(
@@ -628,7 +629,8 @@ impl Client {
         let mut payload = HashMap::new();
         payload.insert("fetch_backend", serde_json::json!(fetcher));
 
-        self.update_watch(uuid, serde_json::to_value(payload)?).await
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
     }
 
     pub async fn configure_watch_notifications(
@@ -647,7 +649,8 @@ impl Client {
             payload.insert("notification_body", serde_json::json!(body));
         }
 
-        self.update_watch(uuid, serde_json::to_value(payload)?).await
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
     }
 
     pub async fn list_processors(&self) -> Result<Vec<String>, ApiError> {
@@ -728,7 +731,8 @@ impl Client {
         let mut payload = HashMap::new();
         payload.insert("history_snapshot_max_length", serde_json::json!(limit));
 
-        self.update_watch(uuid, serde_json::to_value(payload)?).await
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
     }
 
     pub async fn get_snapshot_info(
@@ -763,5 +767,41 @@ impl Client {
             "content_length": content_length,
             "content_type": content_type,
         }))
+    }
+
+    pub async fn trigger_backup(&self) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/backup", self.base_url);
+        let response = self
+            .http_client
+            .post(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let result = response.json::<serde_json::Value>().await?;
+        Ok(result)
+    }
+
+    pub async fn export_watches_to_json(&self) -> Result<HashMap<String, serde_json::Value>, ApiError> {
+        let url = format!("{}/api/v1/watch", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let watches = response.json::<HashMap<String, serde_json::Value>>().await?;
+        
+        // We iterate and fetch full details for each watch to ensure a "Full JSON export"
+        let mut full_export = HashMap::new();
+        for (uuid, _) in watches {
+            let details_url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
+            if let Ok(details_response) = self.http_client.get(&details_url).send().await {
+                if let Ok(details) = details_response.json::<serde_json::Value>().await {
+                    full_export.insert(uuid, details);
+                }
+            }
+        }
+        
+        Ok(full_export)
     }
 }
