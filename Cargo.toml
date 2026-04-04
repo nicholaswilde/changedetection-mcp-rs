@@ -21,7 +21,7 @@ clap = { version = "4.5.4", features = ["derive", "env"] }
 url = "2.5.0"
 mcp-sdk-rs = "0.3.4"
 # Add other dependencies from tech-stack.md if needed
-dashmap = "5.5.3"
+dashmap = "6.1.0"
 futures = "0.3.30"
 async-trait = "0.1.80"
 uuid = { version = "1.8.0", features = ["v4", "serde"] }
