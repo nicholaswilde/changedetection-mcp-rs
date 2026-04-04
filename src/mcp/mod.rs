@@ -77,6 +77,8 @@ pub enum WatchAction {
     SetConditions,
     /// Configure custom HTTP headers and POST body for a specific watch.
     SetRequestConfig,
+    /// Retrieve the favicon for a specific watch.
+    GetFavicon,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -786,6 +788,16 @@ impl ServerHandler for McpServer {
                             })?;
                             Ok(serde_json::to_value(result)?)
                         }
+                        WatchAction::GetFavicon => {
+                            let uuid = args.uuid.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
+                            })?;
+                            let result = self.client.get_watch_favicon(&uuid).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            let b64 = general_purpose::STANDARD.encode(result);
+                            Ok(serde_json::to_value(b64)?)
+                        }
                     }
                 }
                 "tag_ops" => {
@@ -1112,7 +1124,7 @@ impl ServerHandler for McpServer {
                     let tools = vec![
                         Tool {
                             name: "watch_ops".to_string(),
-                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps, conditions, custom request config).".to_string(),
+                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps, conditions, custom request config, favicons).".to_string(),
                             input_schema: Some(get_schema::<WatchOpsArgs>()),
                             annotations: None,
                         },

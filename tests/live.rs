@@ -1165,6 +1165,63 @@ async fn test_live_watch_screenshot() {
 }
 
 #[tokio::test]
+async fn test_live_watch_favicon() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Find any watch
+    let watches_result = mcp
+        .handle_method("watch_ops", wrap_action("List", None))
+        .await
+        .expect("Failed to list watches");
+    let uuid = watches_result
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap())
+        .keys()
+        .next()
+        .expect("No watches found for live test")
+        .clone();
+
+    println!("Testing favicon on watch: {}", uuid);
+
+    // 2. Get favicon
+    let params = serde_json::json!({ "uuid": uuid });
+    let result = mcp
+        .handle_method("watch_ops", wrap_action("GetFavicon", Some(params)))
+        .await;
+
+    match result {
+        Ok(b64) => {
+            assert!(b64.is_string());
+            println!(
+                "Retrieved favicon (base64 length: {})",
+                b64.as_str().unwrap().len()
+            );
+        }
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("404") {
+                println!(
+                    "Favicon not found (404) for watch {}, which is common.",
+                    uuid
+                );
+            } else {
+                panic!("Failed to get watch favicon: {}", e);
+            }
+        }
+    }
+}
+
+#[tokio::test]
 async fn test_live_advanced_filtering() {
     if std::env::var("RUN_LIVE_TESTS").is_err() {
         return;
