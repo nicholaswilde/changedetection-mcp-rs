@@ -6,7 +6,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 
 
-## [ ] Track: Maintenance & Export
+## [x] Track: Maintenance & Export
 Tools for system maintenance tasks (backups, JSON exports).
 - **Link:** [Track Folder](./tracks/maintenance_export/)
 
@@ -18,6 +18,6 @@ Extend MCP server with Resources for snapshots and API specifications.
 
 ---
 
-## [ ] Track: MCP Token Optimization
+## [~] Track: MCP Token Optimization
 Optimize API functions to reduce token usage via consolidation, pagination, and field selection.
 - **Link:** [Track Folder](./tracks/token_usage_reduction_20260402/)
