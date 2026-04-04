@@ -9,15 +9,15 @@
     - [x] Add integration tests for browser steps configuration.
 
 ## Phase 2: Conditions and Triggers
-- [ ] **Task: Implement Conditions Handler**
-    - [ ] Add `SetConditions` action to `WatchAction`.
-    - [ ] Implement `Client::set_conditions` and map the MCP handler.
-- [ ] **Task: Verification - Conditions**
-    - [ ] Add integration tests for conditional triggers.
+- [x] **Task: Implement Conditions Handler** bb10d36
+    - [x] Add `SetConditions` action to `WatchAction`.
+    - [x] Implement `Client::set_conditions` and map the MCP handler.
+- [x] **Task: Verification - Conditions** bb10d36
+    - [x] Add integration tests for conditional triggers.
 
 ## Phase 3: Custom Headers and Body
-- [ ] **Task: Implement Request Config Handler**
-    - [ ] Add `SetRequestConfig` action to `WatchAction`.
-    - [ ] Implement `Client::set_request_config` (headers/body) and map the MCP handler.
-- [ ] **Task: Verification - Request Config**
-    - [ ] Add integration tests for custom headers/body.
+- [x] **Task: Implement Request Config Handler** bb10d36
+    - [x] Add `SetRequestConfig` action to `WatchAction`.
+    - [x] Implement `Client::set_request_config` (headers/body) and map the MCP handler.
+- [x] **Task: Verification - Request Config** bb10d36
+    - [x] Add integration tests for custom headers/body.
