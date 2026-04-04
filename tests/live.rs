@@ -150,6 +150,268 @@ async fn test_live_list_watches() {
 }
 
 #[tokio::test]
+async fn test_live_automation() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Create a watch
+    let watch_url = format!("https://example.com/automation-test-{}", Uuid::new_v4());
+    let create_params = serde_json::json!({
+        "url": watch_url,
+        "title": "Automation Test"
+    });
+    let create_result = mcp
+        .handle_method("watch_ops", wrap_action("Create", Some(create_params)))
+        .await
+        .expect("Failed to create watch");
+
+    let uuid = if create_result.is_string() {
+        create_result.as_str().unwrap().to_string()
+    } else if let Some(u) = create_result.get("uuid").and_then(|v| v.as_str()) {
+        u.to_string()
+    } else {
+        // Search for it to get UUID
+        let search_params = serde_json::json!({ "query": watch_url });
+        let search_result = mcp
+            .handle_method("watch_ops", wrap_action("Search", Some(search_params)))
+            .await
+            .expect("Failed to search for created watch");
+        let watches = search_result
+            .get("watches")
+            .and_then(|v| v.as_object())
+            .unwrap();
+        watches
+            .keys()
+            .next()
+            .expect("No watch found after creation")
+            .clone()
+    };
+    println!("Created watch for automation test: {}", uuid);
+
+    // 2. Set browser steps
+    let steps = serde_json::json!([
+        {
+            "operation": "wait",
+            "selector": "",
+            "optional_value": "2"
+        },
+        {
+            "operation": "click",
+            "selector": "body",
+            "optional_value": ""
+        }
+    ]);
+    let step_params = serde_json::json!({
+        "uuid": uuid,
+        "browser_steps": steps
+    });
+    mcp.handle_method(
+        "watch_ops",
+        wrap_action("SetBrowserSteps", Some(step_params)),
+    )
+    .await
+    .expect("Failed to set browser steps");
+
+    // 3. Verify steps (using Get)
+    let get_params = serde_json::json!({ "uuid": uuid });
+    let details = mcp
+        .handle_method("watch_ops", wrap_action("Get", Some(get_params)))
+        .await
+        .expect("Failed to get watch details");
+
+    let browser_steps = details
+        .get("browser_steps")
+        .and_then(|v| v.as_array())
+        .expect("Missing browser_steps in details");
+    assert!(browser_steps.len() >= 2); // Might have default steps
+    let has_wait = browser_steps
+        .iter()
+        .any(|s| s["operation"] == "wait" && s["optional_value"] == "2");
+    let has_click = browser_steps
+        .iter()
+        .any(|s| s["operation"] == "click" && s["selector"] == "body");
+    assert!(has_wait);
+    assert!(has_click);
+
+    // 4. Cleanup
+    let delete_params = serde_json::json!({ "uuid": uuid });
+    mcp.handle_method("watch_ops", wrap_action("Delete", Some(delete_params)))
+        .await
+        .expect("Failed to delete watch");
+}
+
+#[tokio::test]
+async fn test_live_conditions() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Create a watch
+    let watch_url = format!("https://example.com/conditions-test-{}", Uuid::new_v4());
+    let create_params = serde_json::json!({
+        "url": watch_url,
+        "title": "Conditions Test"
+    });
+    let create_result = mcp
+        .handle_method("watch_ops", wrap_action("Create", Some(create_params)))
+        .await
+        .expect("Failed to create watch");
+
+    let uuid = if create_result.is_string() {
+        create_result.as_str().unwrap().to_string()
+    } else if let Some(u) = create_result.get("uuid").and_then(|v| v.as_str()) {
+        u.to_string()
+    } else {
+        // Search for it to get UUID
+        let search_params = serde_json::json!({ "query": watch_url });
+        let search_result = mcp
+            .handle_method("watch_ops", wrap_action("Search", Some(search_params)))
+            .await
+            .expect("Failed to search for created watch");
+        let watches = search_result
+            .get("watches")
+            .and_then(|v| v.as_object())
+            .unwrap();
+        watches
+            .keys()
+            .next()
+            .expect("No watch found after creation")
+            .clone()
+    };
+    println!("Created watch for conditions test: {}", uuid);
+
+    // 2. Set conditions
+    let conditions = serde_json::json!([
+        {
+            "field": "page_title",
+            "operator": "contains",
+            "value": "Example"
+        }
+    ]);
+    let cond_params = serde_json::json!({
+        "uuid": uuid,
+        "conditions": conditions,
+        "conditions_match_logic": "ANY"
+    });
+    mcp.handle_method("watch_ops", wrap_action("SetConditions", Some(cond_params)))
+        .await
+        .expect("Failed to set conditions");
+
+    // 3. Verify conditions (using Get)
+    let get_params = serde_json::json!({ "uuid": uuid });
+    let details = mcp
+        .handle_method("watch_ops", wrap_action("Get", Some(get_params)))
+        .await
+        .expect("Failed to get watch details");
+
+    let conds = details
+        .get("conditions")
+        .and_then(|v| v.as_array())
+        .expect("Missing conditions in details");
+    assert!(conds.iter().any(|c| c["field"] == "page_title" && c["operator"] == "contains" && c["value"] == "Example"));
+    assert_eq!(details["conditions_match_logic"], "ANY");
+
+    // 4. Cleanup
+    let delete_params = serde_json::json!({ "uuid": uuid });
+    mcp.handle_method("watch_ops", wrap_action("Delete", Some(delete_params)))
+        .await
+        .expect("Failed to delete watch");
+}
+
+#[tokio::test]
+async fn test_live_request_config() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Create a watch
+    let watch_url = format!("https://example.com/config-test-{}", Uuid::new_v4());
+    let create_params = serde_json::json!({
+        "url": watch_url,
+        "title": "Config Test"
+    });
+    let create_result = mcp
+        .handle_method("watch_ops", wrap_action("Create", Some(create_params)))
+        .await
+        .expect("Failed to create watch");
+
+    let uuid = if create_result.is_string() {
+        create_result.as_str().unwrap().to_string()
+    } else if let Some(u) = create_result.get("uuid").and_then(|v| v.as_str()) {
+        u.to_string()
+    } else {
+        // Search for it to get UUID
+        let search_params = serde_json::json!({ "query": watch_url });
+        let search_result = mcp
+            .handle_method("watch_ops", wrap_action("Search", Some(search_params)))
+            .await
+            .expect("Failed to search for created watch");
+        let watches = search_result
+            .get("watches")
+            .and_then(|v| v.as_object())
+            .unwrap();
+        watches
+            .keys()
+            .next()
+            .expect("No watch found after creation")
+            .clone()
+    };
+    println!("Created watch for config test: {}", uuid);
+
+    // 2. Set request config
+    let headers = serde_json::json!({
+        "X-Test-Header": "test-value"
+    });
+    let body = "test-body";
+    let config_params = serde_json::json!({
+        "uuid": uuid,
+        "headers": headers,
+        "body": body
+    });
+    mcp.handle_method("watch_ops", wrap_action("SetRequestConfig", Some(config_params)))
+        .await
+        .expect("Failed to set request config");
+
+    // 3. Verify config (using Get)
+    let get_params = serde_json::json!({ "uuid": uuid });
+    let details = mcp
+        .handle_method("watch_ops", wrap_action("Get", Some(get_params)))
+        .await
+        .expect("Failed to get watch details");
+
+    assert_eq!(details["headers"]["X-Test-Header"], "test-value");
+    assert_eq!(details["body"], "test-body");
+
+    // 4. Cleanup
+    let delete_params = serde_json::json!({ "uuid": uuid });
+    mcp.handle_method("watch_ops", wrap_action("Delete", Some(delete_params)))
+        .await
+        .expect("Failed to delete watch");
+}
+
+#[tokio::test]
 async fn test_live_watch_lifecycle() {
     if std::env::var("RUN_LIVE_TESTS").is_err() {
         return;
@@ -953,7 +1215,7 @@ async fn test_live_maintenance() {
     assert!(export_result.get("watches").is_some());
     let watches = export_result.get("watches").unwrap().as_object().unwrap();
     println!("Exported {} watches", watches.len());
-    
+
     if !watches.is_empty() {
         let first_uuid = watches.keys().next().unwrap();
         let first_watch = watches.get(first_uuid).unwrap();
@@ -980,7 +1242,9 @@ async fn test_live_resources() {
         .await
         .expect("Failed to list resources");
     let resources = list_result.get("resources").unwrap().as_array().unwrap();
-    assert!(resources.iter().any(|r| r["uri"] == "system://openapi-spec"));
+    assert!(resources
+        .iter()
+        .any(|r| r["uri"] == "system://openapi-spec"));
     println!("Live Resources List: {:?}", resources);
 
     // 2. Read system spec
@@ -990,7 +1254,10 @@ async fn test_live_resources() {
         .await
         .expect("Failed to read system spec");
     let spec_contents = spec_result.get("contents").unwrap().as_array().unwrap();
-    assert!(spec_contents[0]["text"].as_str().unwrap().contains("openapi:"));
+    assert!(spec_contents[0]["text"]
+        .as_str()
+        .unwrap()
+        .contains("openapi:"));
     println!("Live Resource Read (system spec) Success");
 
     // 3. Read latest watch snapshot (if any watches exist)
@@ -998,7 +1265,7 @@ async fn test_live_resources() {
         .handle_method("watch_ops", wrap_action("List", None))
         .await
         .expect("Failed to list watches");
-    
+
     // Check if it's the new consolidated format or old
     let watches = if let Some(w) = watches_result.get("watches") {
         w.as_object().unwrap()
@@ -1012,15 +1279,18 @@ async fn test_live_resources() {
         let watch_result = mcp
             .handle_method("resources/read", Some(read_watch_params))
             .await;
-        
+
         match watch_result {
             Ok(res) => {
                 let contents = res.get("contents").unwrap().as_array().unwrap();
                 assert_eq!(contents[0]["uri"], uri);
                 println!("Live resource read success for {}", uri);
-            },
+            }
             Err(e) => {
-                println!("Live resource read failed for {} (expected if no history): {}", uri, e);
+                println!(
+                    "Live resource read failed for {} (expected if no history): {}",
+                    uri, e
+                );
             }
         }
     }

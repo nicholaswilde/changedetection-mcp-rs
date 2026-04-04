@@ -24,6 +24,16 @@ pub enum ApiError {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct Condition {
+    /// Field to check (e.g., 'page_filtered_text', 'page_title').
+    pub field: String,
+    /// Comparison operator (e.g., 'contains_regex', 'equals', 'not_equals').
+    pub operator: String,
+    /// Value to compare against.
+    pub value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct BrowserStep {
     /// The operation to perform (e.g., 'click', 'wait', 'input').
     pub operation: Option<String>,
@@ -40,6 +50,30 @@ pub struct Watch {
     pub paused: Option<bool>,
     pub last_error: Option<serde_json::Value>,
     pub processor: Option<String>,
+    #[serde(default)]
+    pub browser_steps: Option<Vec<BrowserStep>>,
+    #[serde(default)]
+    pub notification_muted: Option<bool>,
+    #[serde(default)]
+    pub notification_urls: Option<Vec<String>>,
+    #[serde(default)]
+    pub notification_title: Option<String>,
+    #[serde(default)]
+    pub notification_body: Option<String>,
+    #[serde(default)]
+    pub include_filters: Option<Vec<String>>,
+    #[serde(default)]
+    pub subtractive_selectors: Option<Vec<String>>,
+    #[serde(default)]
+    pub fetch_backend: Option<String>,
+    #[serde(default)]
+    pub conditions: Option<Vec<Condition>>,
+    #[serde(default)]
+    pub conditions_match_logic: Option<String>,
+    #[serde(default)]
+    pub body: Option<String>,
+    #[serde(default)]
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -639,6 +673,40 @@ impl Client {
     ) -> Result<serde_json::Value, ApiError> {
         let mut payload = HashMap::new();
         payload.insert("browser_steps", serde_json::json!(steps));
+
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
+    }
+
+    pub async fn set_conditions(
+        &self,
+        uuid: &str,
+        conditions: Vec<Condition>,
+        match_logic: Option<&str>,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        payload.insert("conditions", serde_json::json!(conditions));
+        if let Some(logic) = match_logic {
+            payload.insert("conditions_match_logic", serde_json::json!(logic));
+        }
+
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
+    }
+
+    pub async fn set_request_config(
+        &self,
+        uuid: &str,
+        headers: Option<HashMap<String, String>>,
+        body: Option<&str>,
+    ) -> Result<serde_json::Value, ApiError> {
+        let mut payload = HashMap::new();
+        if let Some(h) = headers {
+            payload.insert("headers", serde_json::json!(h));
+        }
+        if let Some(b) = body {
+            payload.insert("body", serde_json::json!(b));
+        }
 
         self.update_watch(uuid, serde_json::to_value(payload)?)
             .await

@@ -1,4 +1,4 @@
-use crate::api::{BrowserStep, Client, Watch};
+use crate::api::{BrowserStep, Client, Condition, Watch};
 use crate::cli::Transport;
 use async_trait::async_trait;
 use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
@@ -73,6 +73,10 @@ pub enum WatchAction {
     ListByProcessor,
     /// Configure browser automation steps (e.g., click, wait, input) for a specific watch.
     SetBrowserSteps,
+    /// Configure change detection conditions (e.g., price thresholds, regex matches).
+    SetConditions,
+    /// Configure custom HTTP headers and POST body for a specific watch.
+    SetRequestConfig,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -111,6 +115,14 @@ pub struct WatchOpsArgs {
     pub notification_body: Option<String>,
     /// A list of browser automation steps to execute during fetching. Required for SetBrowserSteps.
     pub browser_steps: Option<Vec<BrowserStep>>,
+    /// A list of condition rules for change detection logic. Required for SetConditions.
+    pub conditions: Option<Vec<Condition>>,
+    /// Logic operator for conditions: 'ALL' (match all) or 'ANY' (match any).
+    pub conditions_match_logic: Option<String>,
+    /// HTTP request body for the watch.
+    pub body: Option<String>,
+    /// HTTP headers to include in the request.
+    pub headers: Option<std::collections::HashMap<String, String>>,
     #[serde(flatten)]
     pub common: CommonArgs,
 }
@@ -739,6 +751,35 @@ impl ServerHandler for McpServer {
                             })?;
                             Ok(serde_json::to_value(result)?)
                         }
+                        WatchAction::SetConditions => {
+                            let uuid = args.uuid.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
+                            })?;
+                            let conditions = args.conditions.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing conditions")
+                            })?;
+                            let result = self.client.set_conditions(
+                                &uuid,
+                                conditions,
+                                args.conditions_match_logic.as_deref(),
+                            ).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::to_value(result)?)
+                        }
+                        WatchAction::SetRequestConfig => {
+                            let uuid = args.uuid.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
+                            })?;
+                            let result = self.client.set_request_config(
+                                &uuid,
+                                args.headers,
+                                args.body.as_deref(),
+                            ).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::to_value(result)?)
+                        }
                     }
                 }
                 "tag_ops" => {
@@ -1057,7 +1098,7 @@ impl ServerHandler for McpServer {
                     let tools = vec![
                         Tool {
                             name: "watch_ops".to_string(),
-                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps).".to_string(),
+                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps, conditions, custom request config).".to_string(),
                             input_schema: Some(get_schema::<WatchOpsArgs>()),
                             annotations: None,
                         },
