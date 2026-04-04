@@ -16,10 +16,10 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - Users looking to integrate AI-driven web monitoring into their workflows.
 
 ## Key Features (Draft)
-- **Watch Operations (`watch_ops`):** Comprehensive management of watches, including listing (with state/tag filtering), searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, and muting/unmuting notifications. Supports bulk imports and advanced configurations for selectors, fetchers, notifications, browser steps, conditions, and custom request configurations.
+- **Watch Operations (`watch_ops`):** Comprehensive management of watches, including listing (with state/tag filtering), searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, and muting/unmuting notifications. Supports bulk imports and advanced configurations for selectors, fetchers, notifications, browser steps, conditions, custom request configurations, and favicons.
 - **Tag Management (`tag_ops`):** Complete CRUD operations for tags to organize and categorize watches efficiently.
 - **Notification Management (`notification_ops`):** Manage global, system-wide notification endpoints (Apprise-compatible) with operations to list, add, update, and delete service URLs.
-- **History & Analysis (`history_ops`):** Tools for deep analysis of watch history, including snapshot listing, diff generation (text/markdown/html), content retrieval, visual snapshot capture (screenshots), and retention limit management.
+- **History & Analysis (`history_ops`):** Tools for deep analysis of watch history, including snapshot listing, diff generation (text/markdown/html) with advanced filtering (word-level, changes only, ignore whitespace), content retrieval, technical metadata (MD5, last-modified), visual snapshot capture (screenshots), and retention limit management.
 - **System Discovery (`system_ops`):** Discover instance-level capabilities, including server info, OpenAPI specifications, available fetchers, configured proxies, global settings, and change detection processors.
 - **System Maintenance (`maintenance_ops`):** Critical tasks for data portability and safety, including system-wide backups and full watch configuration exports.
 - **MCP Resources:** Support for MCP Resources, allowing LLMs to directly read watch snapshots (`watches://{uuid}/latest`) and the full OpenAPI specification (`system://openapi-spec`) using standard URI schemes.
