@@ -371,6 +371,10 @@ impl ServerHandler for McpServer {
     ) -> Result<ServerCapabilities, Error> {
         let capabilities = ServerCapabilities {
             tools: Some(serde_json::json!({})),
+            resources: Some(serde_json::json!({
+                "subscribe": false,
+                "listChanged": false,
+            })),
             ..Default::default()
         };
         Ok(capabilities)
@@ -392,6 +396,54 @@ impl ServerHandler for McpServer {
             let params_tokens = params.as_ref().map_or(0, |p| p.to_string().len());
 
             let result = match method {
+                "resources/list" => {
+                    let resources = vec![
+                        serde_json::json!({
+                            "uri": "system://openapi-spec",
+                            "name": "OpenAPI Specification",
+                            "mimeType": "application/x-yaml",
+                            "description": "The full OpenAPI specification for the ChangeDetection.io API"
+                        })
+                    ];
+                    Ok(serde_json::json!({ "resources": resources }))
+                }
+                "resources/read" => {
+                    let uri = params.as_ref()
+                        .and_then(|p| p.get("uri"))
+                        .and_then(|u| u.as_str())
+                        .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Missing uri"))?;
+
+                    if uri == "system://openapi-spec" {
+                        let spec = self.client.get_full_spec().await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                        Ok(serde_json::json!({
+                            "contents": [{
+                                "uri": uri,
+                                "mimeType": "application/x-yaml",
+                                "text": spec
+                            }]
+                        }))
+                    } else if uri.starts_with("watches://") && uri.ends_with("/latest") {
+                        let uuid = uri.strip_prefix("watches://")
+                            .and_then(|s| s.strip_suffix("/latest"))
+                            .ok_or_else(|| Error::protocol(ErrorCode::InvalidParams, "Invalid watches URI format"))?;
+                        
+                        let content = self.client.get_snapshot_content(uuid, "latest").await.map_err(|e| {
+                            Error::protocol(ErrorCode::InternalError, e.to_string())
+                        })?;
+                        
+                        Ok(serde_json::json!({
+                            "contents": [{
+                                "uri": uri,
+                                "mimeType": "text/plain",
+                                "text": content
+                            }]
+                        }))
+                    } else {
+                        Err(Error::protocol(ErrorCode::InvalidParams, format!("Unknown resource URI: {}", uri)))
+                    }
+                }
                 "watch_ops" => {
                     let args: WatchOpsArgs = serde_json::from_value(params.as_ref().cloned().unwrap_or(serde_json::json!({})))?;
                     match args.action {
