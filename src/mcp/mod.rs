@@ -190,6 +190,21 @@ pub struct SystemOpsArgs {
     pub common: CommonArgs,
 }
 
+#[derive(JsonSchema, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
+pub enum MaintenanceAction {
+    Backup,
+    Export,
+}
+
+#[derive(JsonSchema, Deserialize, Debug)]
+pub struct MaintenanceOpsArgs {
+    /// The action to perform
+    pub action: MaintenanceAction,
+    #[serde(flatten)]
+    pub common: CommonArgs,
+}
+
 pub fn get_schema<T: JsonSchema>() -> ToolSchema {
     let schema = schema_for!(T);
     let schema_val = serde_json::to_value(&schema).expect("Failed to serialize schema");
@@ -477,7 +492,10 @@ impl ServerHandler for McpServer {
                             let uuid = args.uuid.ok_or_else(|| {
                                 Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
                             })?;
-                            let payload = params.unwrap_or(serde_json::json!({}));
+                            let mut payload = params.unwrap_or(serde_json::json!({}));
+                            if let Some(obj) = payload.as_object_mut() {
+                                obj.remove("action");
+                            }
                             let result = self.client.update_watch(&uuid, payload).await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
@@ -593,7 +611,11 @@ impl ServerHandler for McpServer {
                             let result = self.client.find_watches_by_error().await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
-                            Ok(serde_json::to_value(result)?)
+                            let count = result.len();
+                            Ok(serde_json::json!({
+                                "watches": result,
+                                "total": count
+                            }))
                         }
                         WatchAction::ListByProcessor => {
                             let processor = args.processor.ok_or_else(|| {
@@ -602,7 +624,11 @@ impl ServerHandler for McpServer {
                             let result = self.client.list_watches_by_processor(&processor).await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
-                            Ok(serde_json::to_value(result)?)
+                            let count = result.len();
+                            Ok(serde_json::json!({
+                                "watches": result,
+                                "total": count
+                            }))
                         }
                     }
                 }
@@ -660,7 +686,10 @@ impl ServerHandler for McpServer {
                             let uuid = args.uuid.ok_or_else(|| {
                                 Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
                             })?;
-                            let payload = params.as_ref().cloned().unwrap_or(serde_json::json!({}));
+                            let mut payload = params.as_ref().cloned().unwrap_or(serde_json::json!({}));
+                            if let Some(obj) = payload.as_object_mut() {
+                                obj.remove("action");
+                            }
                             let result = self.client.update_tag(&uuid, payload).await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
@@ -865,13 +894,21 @@ impl ServerHandler for McpServer {
                             let fetchers = self.client.list_fetchers().await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
-                            Ok(serde_json::to_value(fetchers)?)
+                            let count = fetchers.len();
+                            Ok(serde_json::json!({
+                                "fetchers": fetchers,
+                                "total": count
+                            }))
                         }
                         SystemAction::ListProxies => {
                             let proxies = self.client.list_proxies().await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
-                            Ok(serde_json::to_value(proxies)?)
+                            let count = proxies.len();
+                            Ok(serde_json::json!({
+                                "proxies": proxies,
+                                "total": count
+                            }))
                         }
                         SystemAction::GetSettings => {
                             let settings = self.client.get_global_settings().await.map_err(|e| {
@@ -884,6 +921,26 @@ impl ServerHandler for McpServer {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
                             Ok(serde_json::to_value(processors)?)
+                        }
+                    }
+                }
+                "maintenance_ops" => {
+                    let args: MaintenanceOpsArgs = serde_json::from_value(params.as_ref().cloned().unwrap_or(serde_json::json!({})))?;
+                    match args.action {
+                        MaintenanceAction::Backup => {
+                            let result = self.client.trigger_backup().await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(result)
+                        }
+                        MaintenanceAction::Export => {
+                            let result = self.client.export_watches_to_json().await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::json!({
+                                "watches": result,
+                                "total": result.len()
+                            }))
                         }
                     }
                 }
@@ -917,6 +974,12 @@ impl ServerHandler for McpServer {
                             name: "system_ops".to_string(),
                             description: "Consolidated operations for system discovery and settings (info, spec, fetchers, proxies, processors)".to_string(),
                             input_schema: Some(get_schema::<SystemOpsArgs>()),
+                            annotations: None,
+                        },
+                        Tool {
+                            name: "maintenance_ops".to_string(),
+                            description: "Consolidated operations for maintenance tasks (backup, export)".to_string(),
+                            input_schema: Some(get_schema::<MaintenanceOpsArgs>()),
                             annotations: None,
                         },
                     ];
