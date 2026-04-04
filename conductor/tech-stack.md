@@ -56,6 +56,8 @@
 - **async-trait**: Support for asynchronous functions in traits.
 - **uuid**: Unique identifier generation.
 - **url**: URL parsing and manipulation.
+- **schemars**: JSON schema generation.
+- **dotenv**: Load environment variables from .env files.
 - **async-recursion**: Procedural macro for recursive async functions.
 - **tracing-appender**: Non-blocking file logging and rolling appenders (v0.2.4).
 - **tracing-serde**: JSON log serialization (v0.2.0).

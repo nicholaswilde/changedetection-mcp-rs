@@ -16,7 +16,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - Users looking to integrate AI-driven web monitoring into their workflows.
 
 ## Key Features (Draft)
-- **Watch Operations (`watch_ops`):** Comprehensive management of watches, including listing (with state/tag filtering), searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, and muting/unmuting notifications. Supports bulk imports and advanced configurations for selectors and fetchers.
+- **Watch Operations (`watch_ops`):** Comprehensive management of watches, including listing (with state/tag filtering), searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, and muting/unmuting notifications. Supports bulk imports and advanced configurations for selectors, fetchers, notifications, browser steps, conditions, and custom request configurations.
 - **Tag Management (`tag_ops`):** Complete CRUD operations for tags to organize and categorize watches efficiently.
 - **Notification Management (`notification_ops`):** Manage global, system-wide notification endpoints (Apprise-compatible) with operations to list, add, update, and delete service URLs.
 - **History & Analysis (`history_ops`):** Tools for deep analysis of watch history, including snapshot listing, diff generation (text/markdown/html), content retrieval, visual snapshot capture (screenshots), and retention limit management.
