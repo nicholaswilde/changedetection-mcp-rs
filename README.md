@@ -39,18 +39,28 @@ The server exposes key data through the MCP Resources protocol, allowing LLMs to
 - **Field Selection:** Allows requesting only specific fields to minimize response size.
 - **Multi-Transport Support:** Stdio (default) and HTTP/JSON-RPC.
 
-## 🛠️ Build
+## 📦 Installation
+
+### Homebrew
+
+Install the MCP server using [Homebrew](https://brew.sh/) via the [nicholaswilde/homebrew-tap](https://github.com/nicholaswilde/homebrew-tap):
+
+```bash
+brew install nicholaswilde/tap/changedetection-mcp-rs
+```
+
+### Build from Source
 
 To build the project, you need a Rust toolchain installed.
 
-### Local Build
+#### Local Build
 
 ```bash
 # Build in release mode
 task build:local
 ```
 
-### Cross-Compilation
+#### Cross-Compilation
 
 ```bash
 # Build for amd64 (Linux)
@@ -76,13 +86,15 @@ The server is configured via CLI arguments or environment variables.
 
 ### 🤖 Configuration Example (Claude Desktop)
 
+If installed via **Homebrew**, use the executable name. If **built from source**, use the absolute path to the binary.
+
 Add the following to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "changedetection": {
-      "command": "/path/to/changedetection-mcp-rs/target/release/changedetection-mcp-rs",
+      "command": "changedetection-mcp-rs",
       "env": {
         "CHANGEDETECTION_API_KEY": "your_api_key_here",
         "CHANGEDETECTION_BASE_URL": "http://your_instance_url:5000"
