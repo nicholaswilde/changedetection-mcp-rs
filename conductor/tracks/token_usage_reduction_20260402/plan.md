@@ -25,7 +25,7 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 3: Testing & Migration' (Protocol in workflow.md)** 27f4ed4
 
 ## Phase 4: Final Polish & Documentation
-- [~] **Task: Optimize Descriptions**
+- [x] **Task: Optimize Descriptions** 7f5e16b
     - [ ] Refine the descriptions of the category tools and their `action` enums to be more descriptive for LLMs.
 - [ ] **Task: Update Project Documentation**
 ...
