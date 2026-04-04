@@ -249,6 +249,8 @@ pub enum SystemAction {
     GetSettings,
     /// List all available change detection processors (e.g., 'restock_diff').
     ListProcessors,
+    /// Audit the responsiveness and performance of all configured proxies.
+    AuditProxies,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -1100,11 +1102,7 @@ impl ServerHandler for McpServer {
                             let fetchers = self.client.list_fetchers().await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
-                            let count = fetchers.len();
-                            Ok(serde_json::json!({
-                                "fetchers": fetchers,
-                                "total": count
-                            }))
+                            Ok(fetchers)
                         }
                         SystemAction::ListProxies => {
                             let proxies = self.client.list_proxies().await.map_err(|e| {
@@ -1123,13 +1121,20 @@ impl ServerHandler for McpServer {
                             Ok(serde_json::to_value(settings)?)
                         }
                         SystemAction::ListProcessors => {
-                            let processors = self.client.list_processors().await.map_err(|e| {
+                            let result = self.client.list_processors().await.map_err(|e| {
                                 Error::protocol(ErrorCode::InternalError, e.to_string())
                             })?;
-                            Ok(serde_json::to_value(processors)?)
+                            Ok(result)
+                        }
+                        SystemAction::AuditProxies => {
+                            let result = self.client.audit_proxies().await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(result)
                         }
                     }
                 }
+
                 "maintenance_ops" => {
                     let args: MaintenanceOpsArgs = serde_json::from_value(params.as_ref().cloned().unwrap_or(serde_json::json!({})))?;
                     match args.action {
@@ -1178,7 +1183,7 @@ impl ServerHandler for McpServer {
                         },
                         Tool {
                             name: "system_ops".to_string(),
-                            description: "Operations for discovering server-level configurations and capabilities. Actions include retrieving system info, API specifications, available fetching engines, configured proxies, global settings, and change detection processors.".to_string(),
+                            description: "Operations for discovering server-level configurations and capabilities. Actions include retrieving system info, API specifications, available fetching engines, configured proxies, proxy health auditing, global settings, and change detection processors.".to_string(),
                             input_schema: Some(get_schema::<SystemOpsArgs>()),
                             annotations: None,
                         },

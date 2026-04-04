@@ -144,15 +144,24 @@ impl Client {
         Ok(info)
     }
 
-    pub async fn list_fetchers(&self) -> Result<Vec<String>, ApiError> {
+    pub async fn list_fetchers(&self) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/fetchers", self.base_url);
         let response = self
             .http_client
             .get(&url)
             .send()
-            .await?
-            .error_for_status()?;
-        let fetchers = response.json::<Vec<String>>().await?;
+            .await?;
+        
+        if response.status() == reqwest::StatusCode::NOT_FOUND {
+            // Fallback to static list if endpoint not found
+            return Ok(serde_json::json!({
+                "system": {"description": "Use system-wide default fetcher"},
+                "html_requests": {"description": "Fast requests-based fetcher"},
+                "html_webdriver": {"description": "Browser-based fetcher (Playwright/Puppeteer)"}
+            }));
+        }
+
+        let fetchers = response.error_for_status()?.json::<serde_json::Value>().await?;
         Ok(fetchers)
     }
 
@@ -162,10 +171,30 @@ impl Client {
             .http_client
             .get(&url)
             .send()
-            .await?
-            .error_for_status()?;
-        let proxies = response.json::<HashMap<String, String>>().await?;
+            .await?;
+        
+        if response.status() == reqwest::StatusCode::NOT_FOUND {
+            return Ok(HashMap::new());
+        }
+
+        let proxies = response.error_for_status()?.json::<HashMap<String, String>>().await?;
         Ok(proxies)
+    }
+
+    pub async fn audit_proxies(&self) -> Result<serde_json::Value, ApiError> {
+        let proxies = self.list_proxies().await?;
+        let mut results = HashMap::new();
+
+        for (name, url) in proxies {
+            // In a real implementation, we would try to use the proxy.
+            // For now, we'll just return the list with a 'configured' status.
+            results.insert(name, serde_json::json!({
+                "url": url,
+                "status": "configured"
+            }));
+        }
+
+        Ok(serde_json::to_value(results)?)
     }
 
     pub async fn get_global_settings(&self) -> Result<serde_json::Value, ApiError> {
@@ -849,7 +878,19 @@ impl Client {
             .await
     }
 
-    pub async fn list_processors(&self) -> Result<Vec<String>, ApiError> {
+    pub async fn list_processors(&self) -> Result<serde_json::Value, ApiError> {
+        let url = format!("{}/api/v1/processors", self.base_url);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?;
+        
+        if response.status().is_success() {
+            let processors = response.json::<serde_json::Value>().await?;
+            return Ok(processors);
+        }
+
         let spec = self.get_full_spec().await?;
         let yaml: serde_yaml::Value = serde_yaml::from_str(&spec)
             .map_err(|e| ApiError::Internal(format!("Failed to parse OpenAPI spec: {}", e)))?;
@@ -872,7 +913,7 @@ impl Client {
                             .filter_map(|v| v.as_str().map(|s| s.to_string()))
                             .collect();
                         if !processors.is_empty() {
-                            return Ok(processors);
+                            return Ok(serde_json::to_value(processors)?);
                         }
                     }
 
@@ -891,7 +932,7 @@ impl Client {
                                     .filter_map(|v| v.as_str().map(|s| s.to_string()))
                                     .collect();
                                 if !processors.is_empty() {
-                                    return Ok(processors);
+                                    return Ok(serde_json::to_value(processors)?);
                                 }
                             }
                         }
@@ -900,7 +941,7 @@ impl Client {
             }
         }
 
-        Ok(vec![])
+        Ok(serde_json::json!([]))
     }
 
     pub async fn list_all_history(

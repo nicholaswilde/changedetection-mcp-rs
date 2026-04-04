@@ -736,10 +736,57 @@ async fn test_live_list_processors() {
         .await
         .expect("Failed to list processors");
 
-    assert!(result.is_array());
-    let processors = result.as_array().unwrap();
-    assert!(!processors.is_empty());
-    println!("Available processors: {:?}", processors);
+    assert!(result.is_array() || result.is_object());
+    if let Some(arr) = result.as_array() {
+        assert!(!arr.is_empty());
+    } else if let Some(obj) = result.as_object() {
+        assert!(!obj.is_empty());
+    }
+    println!("Available processors: {:?}", result);
+}
+
+#[tokio::test]
+async fn test_live_list_fetchers() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    let result = mcp
+        .handle_method("system_ops", wrap_action("ListFetchers", None))
+        .await
+        .expect("Failed to list fetchers");
+
+    assert!(result.is_array() || result.is_object());
+    println!("Available fetchers: {:?}", result);
+}
+
+#[tokio::test]
+async fn test_live_audit_proxies() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    let result = mcp
+        .handle_method("system_ops", wrap_action("AuditProxies", None))
+        .await
+        .expect("Failed to audit proxies");
+
+    assert!(result.is_object());
+    println!("Proxy audit result: {:?}", result);
 }
 
 #[tokio::test]
