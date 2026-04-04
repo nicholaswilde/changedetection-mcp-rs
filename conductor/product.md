@@ -36,6 +36,7 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - **Specialized Filtering:** High-intent tools for identifying problematic watches (filtering by error state) or auditing instance configurations (filtering by change detection processor).
 - **Retention Management:** Dedicated tools to manage watch history size and retention limits.
 - **System Maintenance:** High-intent tools for triggering system-wide backups and performing full watch configuration exports for data portability and safety.
+- **MCP Resources:** Support for MCP Resources, allowing LLMs to directly read watch snapshots (`watches://{uuid}/latest`) and the full OpenAPI specification (`system://openapi-spec`) using standard URI schemes.
 
 ## Design Principles
 - **Rust-powered Efficiency:** Leverage Rust's performance and safety for a reliable server.
