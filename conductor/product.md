@@ -16,27 +16,14 @@ The `changedetection-mcp-rs` server acts as a bridge, translating MCP tool calls
 - Users looking to integrate AI-driven web monitoring into their workflows.
 
 ## Key Features (Draft)
-- **List Watches:** Retrieve a list of all current watches, optionally filtered by tag or operational state (paused, active, error).
-- **Search Watches:** Efficiently find specific watches by URL or title using search queries, optimizing token usage.
-- **System Information:** Retrieve ChangeDetection.io server version and statistics for health monitoring and troubleshooting.
-- **System & Environment Discovery:** Tools for discovering instance-level configurations, including supported fetchers, configured proxies, global settings, and the full OpenAPI specification.
-- **Tag Management:** Complete CRUD operations for tags, enabling organized watch groups.
-- **Get Watch Details:** Fetch detailed information and the latest changes for a specific watch. Filter watches by tag.
-- **Bulk Import:** Efficiently add multiple URLs as new watches in a single operation.
-- **Notification Management:** Complete CRUD operations for global notification endpoints (Apprise-compatible).
-- **Advanced Watch Configuration:** Specialized tools for fine-grained configuration of selectors (CSS, XPath, JSONPath), fetching engines (e.g., Playwright), and per-watch notification settings.
-- **Explicit State Management:** High-intent tools to pause/unpause watches and mute/unmute notifications.
-- **Create/Update Watch:** Programmatically add new URLs to track or modify existing watch configurations.
-- **Delete Watch:** Remove watches that are no longer needed.
-- **Visual Snapshots:** Retrieve base64 encoded screenshots of monitored pages (requires browser fetcher).
-- **Trigger Re-check:** Manually force a check for changes on a specific watch.
-- **Get Snapshots:** Retrieve historical snapshots of tracked pages.
-- **Processor Discovery:** List available change detection processors (e.g., restock_diff, text_json_diff).
-- **Advanced Snapshot Analysis:** Tools for retrieving technical metadata (content-length, content-type) for snapshots and bulk-listing history across multiple watches.
-- **Specialized Filtering:** High-intent tools for identifying problematic watches (filtering by error state) or auditing instance configurations (filtering by change detection processor).
-- **Retention Management:** Dedicated tools to manage watch history size and retention limits.
-- **System Maintenance:** High-intent tools for triggering system-wide backups and performing full watch configuration exports for data portability and safety.
+- **Watch Operations (`watch_ops`):** Comprehensive management of watches, including listing (with state/tag filtering), searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, and muting/unmuting notifications. Supports bulk imports and advanced configurations for selectors and fetchers.
+- **Tag Management (`tag_ops`):** Complete CRUD operations for tags to organize and categorize watches efficiently.
+- **Notification Management (`notification_ops`):** Manage global, system-wide notification endpoints (Apprise-compatible) with operations to list, add, update, and delete service URLs.
+- **History & Analysis (`history_ops`):** Tools for deep analysis of watch history, including snapshot listing, diff generation (text/markdown/html), content retrieval, visual snapshot capture (screenshots), and retention limit management.
+- **System Discovery (`system_ops`):** Discover instance-level capabilities, including server info, OpenAPI specifications, available fetchers, configured proxies, global settings, and change detection processors.
+- **System Maintenance (`maintenance_ops`):** Critical tasks for data portability and safety, including system-wide backups and full watch configuration exports.
 - **MCP Resources:** Support for MCP Resources, allowing LLMs to directly read watch snapshots (`watches://{uuid}/latest`) and the full OpenAPI specification (`system://openapi-spec`) using standard URI schemes.
+- **Token Usage Optimization:** Built-in pagination and field selection for all list operations to minimize token consumption and improve LLM context efficiency.
 
 ## Design Principles
 - **Rust-powered Efficiency:** Leverage Rust's performance and safety for a reliable server.
