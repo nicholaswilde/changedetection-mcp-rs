@@ -41,6 +41,7 @@
 - **reqwest-retry**: Retry strategy for reqwest (v0.9.1).
 - **http-cache-reqwest**: HTTP caching for reqwest (v1.0.0-alpha.5).
 - **schemars**: Automated JSON schema generation from Rust types (v1.2.1).
+- **serde_yaml**: For parsing OpenAPI specifications (v0.9.34).
 - **axum**: Web framework for HTTP/JSON-RPC transport (v0.8.8).
 - **serde**, **serde_json**, **toml**: For configuration and API parsing.
 - **clap**: For robust CLI argument parsing.
