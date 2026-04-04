@@ -9,7 +9,10 @@ echo "Running tag management tests via curl..."
 echo "Test 1: List tags..."
 response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d '{
   "jsonrpc": "2.0",
-  "method": "list_tags",
+  "method": "tag_ops",
+  "params": {
+    "action": "List"
+  },
   "id": 1
 }')
 if echo "$response" | grep -q "result"; then
@@ -23,8 +26,11 @@ fi
 echo "Test 2: Create tag..."
 response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d '{
   "jsonrpc": "2.0",
-  "method": "create_tag",
-  "params": {"title": "Bash Test Tag"},
+  "method": "tag_ops",
+  "params": {
+    "action": "Create",
+    "title": "Bash Test Tag"
+  },
   "id": 2
 }')
 TAG_UUID=$(echo "$response" | grep -oP '(?<="result":")[^"]+')
@@ -35,12 +41,15 @@ else
   exit 1
 fi
 
-# 3. Skip verification if list is empty (might need a watch)
-echo "Test 3: Verify tag exists via get_tag_details..."
+# 3. Get tag details
+echo "Test 3: Verify tag exists via Get action..."
 response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d "{
   \"jsonrpc\": \"2.0\",
-  \"method\": \"get_tag_details\",
-  \"params\": {\"uuid\": \"$TAG_UUID\"},
+  \"method\": \"tag_ops\",
+  \"params\": {
+    \"action\": \"Get\",
+    \"uuid\": \"$TAG_UUID\"
+  },
   \"id\": 3
 }")
 if echo "$response" | grep -q "result"; then
@@ -54,8 +63,12 @@ fi
 echo "Test 4: Update tag..."
 response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d "{
   \"jsonrpc\": \"2.0\",
-  \"method\": \"update_tag\",
-  \"params\": {\"uuid\": \"$TAG_UUID\", \"title\": \"Updated Bash Test Tag\"},
+  \"method\": \"tag_ops\",
+  \"params\": {
+    \"action\": \"Update\",
+    \"uuid\": \"$TAG_UUID\",
+    \"title\": \"Updated Bash Test Tag\"
+  },
   \"id\": 4
 }")
 if echo "$response" | grep -q "success" || echo "$response" | grep -q "result"; then
@@ -69,8 +82,11 @@ fi
 echo "Test 5: Delete tag..."
 response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d "{
   \"jsonrpc\": \"2.0\",
-  \"method\": \"delete_tag\",
-  \"params\": {\"uuid\": \"$TAG_UUID\"},
+  \"method\": \"tag_ops\",
+  \"params\": {
+    \"action\": \"Delete\",
+    \"uuid\": \"$TAG_UUID\"
+  },
   \"id\": 5
 }")
 if echo "$response" | grep -q "success" || echo "$response" | grep -q "result"; then

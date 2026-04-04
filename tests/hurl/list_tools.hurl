@@ -8,5 +8,5 @@ POST http://localhost:3000/
 HTTP 200
 [Asserts]
 jsonpath "$.result.tools" count >= 1
-jsonpath "$.result.tools[*].name" contains "list_watches"
-jsonpath "$.result.tools[*].name" contains "get_watch_details"
+jsonpath "$.result.tools[*].name" contains "watch_ops"
+jsonpath "$.result.tools[*].name" contains "system_ops"

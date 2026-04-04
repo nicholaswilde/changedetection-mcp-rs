@@ -2,7 +2,10 @@
 POST http://localhost:3000/
 {
   "jsonrpc": "2.0",
-  "method": "list_tags",
+  "method": "tag_ops",
+  "params": {
+    "action": "List"
+  },
   "id": 1
 }
 HTTP 200
@@ -13,8 +16,9 @@ jsonpath "$.result" exists
 POST http://localhost:3000/
 {
   "jsonrpc": "2.0",
-  "method": "create_tag",
+  "method": "tag_ops",
   "params": {
+    "action": "Create",
     "title": "Hurl Test Tag"
   },
   "id": 2
@@ -22,15 +26,16 @@ POST http://localhost:3000/
 HTTP 200
 [Asserts]
 jsonpath "$.result" exists
-jsonpath "$.error" isCollection
-jsonpath "$.error" count == 0
 capture "tag_uuid" : jsonpath "$.result"
 
 # List tags again
 POST http://localhost:3000/
 {
   "jsonrpc": "2.0",
-  "method": "list_tags",
+  "method": "tag_ops",
+  "params": {
+    "action": "List"
+  },
   "id": 3
 }
 HTTP 200
@@ -41,8 +46,9 @@ jsonpath "$.result" exists
 POST http://localhost:3000/
 {
   "jsonrpc": "2.0",
-  "method": "update_tag",
+  "method": "tag_ops",
   "params": {
+    "action": "Update",
     "uuid": "{{tag_uuid}}",
     "title": "Updated Hurl Test Tag"
   },
@@ -56,8 +62,9 @@ jsonpath "$.result" exists
 POST http://localhost:3000/
 {
   "jsonrpc": "2.0",
-  "method": "delete_tag",
+  "method": "tag_ops",
   "params": {
+    "action": "Delete",
     "uuid": "{{tag_uuid}}"
   },
   "id": 5

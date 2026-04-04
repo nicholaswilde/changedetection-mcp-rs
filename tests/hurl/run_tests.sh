@@ -12,7 +12,7 @@ response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d '{
   "method": "tools/list",
   "id": 1
 }')
-if echo "$response" | grep -q "list_watches" && echo "$response" | grep -q "get_watch_details"; then
+if echo "$response" | grep -q "watch_ops" && echo "$response" | grep -q "system_ops"; then
   echo "PASS"
 else
   echo "FAIL: Unexpected response: $response"
@@ -23,8 +23,10 @@ fi
 echo "Test 2: List watches (expected error due to dummy key)..."
 response=$(curl -s -X POST $BASE_URL/ -H "Content-Type: application/json" -d '{
   "jsonrpc": "2.0",
-  "method": "list_watches",
-  "params": {},
+  "method": "watch_ops",
+  "params": {
+    "action": "List"
+  },
   "id": 2
 }')
 if echo "$response" | grep -q "InternalError" || echo "$response" | grep -q "result"; then
