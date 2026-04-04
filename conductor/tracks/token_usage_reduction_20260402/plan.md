@@ -27,7 +27,6 @@
 ## Phase 4: Final Polish & Documentation
 - [x] **Task: Optimize Descriptions** 7f5e16b
     - [ ] Refine the descriptions of the category tools and their `action` enums to be more descriptive for LLMs.
-- [ ] **Task: Update Project Documentation**
-...
+- [x] **Task: Update Project Documentation** 265adf3
     - [ ] Update any documentation that references the individual MCP tools.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 4: Final Polish & Documentation' (Protocol in workflow.md)**
