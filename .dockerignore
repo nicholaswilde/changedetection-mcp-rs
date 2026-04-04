@@ -1,0 +1,18 @@
+# Source Control
+.git
+.gitignore
+
+# Build Artifacts
+target/
+**/*.rs.bk
+
+# Documentation and Project Management
+conductor/
+.gemini/
+Taskfile.yml
+README.md
+LICENSE
+
+# Docker files
+Dockerfile
+.dockerignore
