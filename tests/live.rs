@@ -334,6 +334,151 @@ async fn test_live_conditions() {
 }
 
 #[tokio::test]
+async fn test_live_trigger_all() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Trigger all
+    let result = mcp
+        .handle_method("watch_ops", wrap_action("TriggerAll", None))
+        .await
+        .expect("Failed to trigger all watches");
+
+    assert!(result.is_object());
+    let status = result["status"].as_str().unwrap();
+    assert!(status == "success" || status.contains("OK"));
+}
+
+#[tokio::test]
+async fn test_live_mark_as_viewed() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Find any watch
+    let watches_result = mcp
+        .handle_method("watch_ops", wrap_action("List", None))
+        .await
+        .expect("Failed to list watches");
+    let uuid = watches_result
+        .get("watches")
+        .and_then(|v| v.as_object())
+        .unwrap_or_else(|| watches_result.as_object().unwrap())
+        .keys()
+        .next()
+        .expect("No watches found for live test")
+        .clone();
+
+    // 2. Mark as viewed
+    let params = serde_json::json!({ "uuid": uuid });
+    let result = mcp
+        .handle_method("watch_ops", wrap_action("MarkAsViewed", Some(params)))
+        .await
+        .expect("Failed to mark watch as viewed");
+
+    println!("Mark as viewed result: {:?}", result);
+    assert!(result.is_object());
+    assert_eq!(result["status"], "success");
+}
+
+#[tokio::test]
+async fn test_live_bulk_retention() {
+    if std::env::var("RUN_LIVE_TESTS").is_err() {
+        return;
+    }
+
+    dotenv::dotenv().ok();
+    let base_url = env::var("CHANGEDETECTION_BASE_URL").expect("CHANGEDETECTION_BASE_URL not set");
+    let api_key = env::var("CHANGEDETECTION_API_KEY").expect("CHANGEDETECTION_API_KEY not set");
+
+    let client = Client::new(base_url, api_key);
+    let mcp = McpServer::new(client);
+
+    // 1. Create two watches with a unique tag
+    let unique_tag = format!("bulk-retention-test-{}", Uuid::new_v4());
+    let watch1_url = format!("https://example.com/bulk-1-{}", Uuid::new_v4());
+    let watch2_url = format!("https://example.com/bulk-2-{}", Uuid::new_v4());
+
+    let _ = mcp
+        .handle_method(
+            "watch_ops",
+            wrap_action(
+                "Create",
+                Some(serde_json::json!({
+                    "url": watch1_url,
+                    "tag": unique_tag
+                })),
+            ),
+        )
+        .await
+        .expect("Failed to create watch 1");
+
+    let _ = mcp
+        .handle_method(
+            "watch_ops",
+            wrap_action(
+                "Create",
+                Some(serde_json::json!({
+                    "url": watch2_url,
+                    "tag": unique_tag
+                })),
+            ),
+        )
+        .await
+        .expect("Failed to create watch 2");
+
+    // 2. Set bulk limit
+    let params = serde_json::json!({
+        "tag": unique_tag,
+        "limit": 50
+    });
+    let result = mcp
+        .handle_method("history_ops", wrap_action("SetBulkLimit", Some(params)))
+        .await
+        .expect("Failed to set bulk history limit");
+
+    assert!(result.is_object());
+    assert!(result.as_object().unwrap().len() >= 2);
+    for (_, res) in result.as_object().unwrap() {
+        assert_eq!(res["status"], "success");
+    }
+
+    // 3. Cleanup
+    let watches_result = mcp
+        .handle_method(
+            "watch_ops",
+            wrap_action("List", Some(serde_json::json!({ "tag": unique_tag }))),
+        )
+        .await
+        .expect("Failed to list watches by tag");
+    
+    let watches = watches_result.get("watches").and_then(|v| v.as_object()).unwrap_or_else(|| watches_result.as_object().unwrap());
+    for uuid in watches.keys() {
+        let _ = mcp
+            .handle_method(
+                "watch_ops",
+                wrap_action("Delete", Some(serde_json::json!({ "uuid": uuid }))),
+            )
+            .await;
+    }
+}
+
+#[tokio::test]
 async fn test_live_request_config() {
     if std::env::var("RUN_LIVE_TESTS").is_err() {
         return;

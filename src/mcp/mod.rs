@@ -79,6 +79,10 @@ pub enum WatchAction {
     SetRequestConfig,
     /// Retrieve the favicon for a specific watch.
     GetFavicon,
+    /// Manually trigger a check for all watches, optionally filtered by tag.
+    TriggerAll,
+    /// Mark a specific watch as viewed by updating its last viewed timestamp.
+    MarkAsViewed,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -198,6 +202,8 @@ pub enum HistoryAction {
     SetLimit,
     /// Retrieve technical metadata for a specific snapshot (e.g., content-length).
     GetInfo,
+    /// Set a history retention limit for multiple watches, optionally filtered by tag.
+    SetBulkLimit,
 }
 
 #[derive(JsonSchema, Deserialize, Debug)]
@@ -798,6 +804,21 @@ impl ServerHandler for McpServer {
                             let b64 = general_purpose::STANDARD.encode(result);
                             Ok(serde_json::to_value(b64)?)
                         }
+                        WatchAction::TriggerAll => {
+                            let result = self.client.trigger_recheck_all(args.tag.as_deref()).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::to_value(result)?)
+                        }
+                        WatchAction::MarkAsViewed => {
+                            let uuid = args.uuid.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing uuid")
+                            })?;
+                            let result = self.client.mark_as_viewed(&uuid).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::to_value(result)?)
+                        }
                     }
                 }
                 "tag_ops" => {
@@ -1046,6 +1067,15 @@ impl ServerHandler for McpServer {
                             })?;
                             Ok(serde_json::to_value(result)?)
                         }
+                        HistoryAction::SetBulkLimit => {
+                            let limit = args.limit.ok_or_else(|| {
+                                Error::protocol(ErrorCode::InvalidParams, "Missing limit")
+                            })?;
+                            let result = self.client.set_bulk_history_limit(args.tag.as_deref(), limit).await.map_err(|e| {
+                                Error::protocol(ErrorCode::InternalError, e.to_string())
+                            })?;
+                            Ok(serde_json::to_value(result)?)
+                        }
                     }
                 }
                 "system_ops" => {
@@ -1124,7 +1154,7 @@ impl ServerHandler for McpServer {
                     let tools = vec![
                         Tool {
                             name: "watch_ops".to_string(),
-                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps, conditions, custom request config, favicons).".to_string(),
+                            description: "Comprehensive operations for managing and interacting with individual or multiple watches. Actions include listing, searching, detailed retrieval, creation, updates, deletion, manual triggering (single or all), marking as viewed, pausing/unpausing, muting/unmuting notifications, and configuring advanced monitoring settings (selectors, fetchers, notifications, browser steps, conditions, custom request config, favicons).".to_string(),
                             input_schema: Some(get_schema::<WatchOpsArgs>()),
                             annotations: None,
                         },
@@ -1142,7 +1172,7 @@ impl ServerHandler for McpServer {
                         },
                         Tool {
                             name: "history_ops".to_string(),
-                            description: "Operations for managing and analyzing the historical data of watches. Actions include retrieving snapshot history, comparing snapshots (diffs) with advanced filtering (word-level, changes only, ignore whitespace), fetching specific snapshot content, capturing screenshots, and managing data retention limits.".to_string(),
+                            description: "Operations for managing and analyzing the historical data of watches. Actions include retrieving snapshot history, comparing snapshots (diffs) with advanced filtering (word-level, changes only, ignore whitespace), fetching specific snapshot content, capturing screenshots, and managing data retention limits (single or bulk).".to_string(),
                             input_schema: Some(get_schema::<HistoryOpsArgs>()),
                             annotations: None,
                         },

@@ -50,6 +50,8 @@ pub struct Watch {
     pub paused: Option<bool>,
     pub last_error: Option<serde_json::Value>,
     pub processor: Option<String>,
+    pub last_viewed: Option<u64>,
+    pub last_changed: Option<u64>,
     #[serde(default)]
     pub browser_steps: Option<Vec<BrowserStep>>,
     #[serde(default)]
@@ -67,7 +69,7 @@ pub struct Watch {
     #[serde(default)]
     pub fetch_backend: Option<String>,
     #[serde(default)]
-    pub conditions: Option<Vec<Condition>>,
+    pub conditions: Option<serde_json::Value>,
     #[serde(default)]
     pub conditions_match_logic: Option<String>,
     #[serde(default)]
@@ -246,10 +248,18 @@ impl Client {
             .http_client
             .get(&url)
             .send()
-            .await?
-            .error_for_status()?;
-        let watch = response.json::<Watch>().await?;
-        Ok(watch)
+            .await?;
+        
+        let status = response.status();
+        let text = response.text().await?;
+        println!("Get watch details status: {}, body: {}", status, text);
+
+        if status.is_success() {
+            let watch = serde_json::from_str::<Watch>(&text)?;
+            Ok(watch)
+        } else {
+            Err(ApiError::Internal(format!("HTTP error {}: {}", status, text)))
+        }
     }
 
     pub async fn create_watch(
@@ -286,19 +296,32 @@ impl Client {
             .put(&url)
             .json(&payload)
             .send()
-            .await?
-            .error_for_status()?;
-
+            .await?;
+        
+        let status = response.status();
         let text = response.text().await?;
-        if text.trim().is_empty() {
-            return Ok(serde_json::json!({"status": "success"}));
+        println!("Update watch status: {}, body: {}", status, text);
+
+        if status.is_success() {
+            let trimmed = text.trim();
+            if trimmed.is_empty() {
+                return Ok(serde_json::json!({"status": "success"}));
+            }
+            if trimmed == "OK" || trimmed == "\"OK\"" {
+                return Ok(serde_json::json!({"status": "success"}));
+            }
+            if trimmed.starts_with('{') || trimmed.starts_with('[') {
+                match serde_json::from_str::<serde_json::Value>(trimmed) {
+                    Ok(json) => return Ok(json),
+                    Err(_) => {}
+                }
+            }
+            Ok(serde_json::json!({ "status": trimmed.trim_matches('"') }))
+        } else {
+            Err(ApiError::Internal(format!("HTTP error {}: {}", status, text)))
         }
-
-        let result =
-            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
-
-        Ok(result)
     }
+
 
     pub async fn delete_watch(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
         let url = format!("{}/api/v1/watch/{}", self.base_url, uuid);
@@ -320,7 +343,46 @@ impl Client {
     }
 
     pub async fn trigger_check(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
-        let url = format!("{}/api/v1/watch/{}?recheck=1", self.base_url, uuid);
+        let url = format!("{}/api/v1/watch/{}/recheck", self.base_url, uuid);
+        let response = self
+            .http_client
+            .get(&url)
+            .send()
+            .await?
+            .error_for_status()?;
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Ok(serde_json::json!({"status": "success"}));
+        }
+        Ok(serde_json::json!({"status": text}))
+    }
+
+    pub async fn trigger_recheck_all(&self, tag: Option<&str>) -> Result<serde_json::Value, ApiError> {
+        let url = if let Some(t) = tag {
+            // Find tag UUID first if it's a name, or use it directly if it looks like a UUID
+            // Actually, the API for /tag/{uuid} recheck=true uses UUID.
+            // Let's assume the user provides the tag UUID or we search for it.
+            // For now, we'll try to find the tag by name if it's not a UUID.
+            let tag_uuid = if uuid::Uuid::parse_str(t).is_ok() {
+                t.to_string()
+            } else {
+                let tags = self.list_tags().await?;
+                let mut found_uuid = t.to_string();
+                if let Some(obj) = tags.as_object() {
+                    for (uuid, tag_val) in obj {
+                        if tag_val.get("title").and_then(|v| v.as_str()) == Some(t) {
+                            found_uuid = uuid.clone();
+                            break;
+                        }
+                    }
+                }
+                found_uuid
+            };
+            format!("{}/api/v1/tag/{}?recheck=true", self.base_url, tag_uuid)
+        } else {
+            format!("{}/api/v1/watch?recheck_all=1", self.base_url)
+        };
+
         let response = self
             .http_client
             .get(&url)
@@ -329,13 +391,21 @@ impl Client {
             .error_for_status()?;
 
         let text = response.text().await?;
-        if text.trim().is_empty() {
+        let trimmed = text.trim();
+        if trimmed.is_empty() || trimmed == "OK" {
             return Ok(serde_json::json!({"status": "success"}));
         }
+        Ok(serde_json::json!({"status": trimmed}))
+    }
 
-        let result =
-            serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({"status": text}));
-        Ok(result)
+    pub async fn mark_as_viewed(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
+        let watch = self.get_watch_details(uuid).await?;
+        let last_changed = watch.last_changed.unwrap_or(0);
+        let mut payload = HashMap::new();
+        payload.insert("last_viewed", serde_json::json!(last_changed + 1));
+
+        self.update_watch(uuid, serde_json::to_value(payload)?)
+            .await
     }
 
     pub async fn get_watch_history(&self, uuid: &str) -> Result<HashMap<String, String>, ApiError> {
@@ -859,6 +929,27 @@ impl Client {
 
         self.update_watch(uuid, serde_json::to_value(payload)?)
             .await
+    }
+
+    pub async fn set_bulk_history_limit(
+        &self,
+        tag: Option<&str>,
+        limit: i32,
+    ) -> Result<serde_json::Value, ApiError> {
+        let watches = if let Some(t) = tag {
+            self.list_watches(Some(t)).await?
+        } else {
+            self.list_watches(None).await?
+        };
+
+        let mut results = HashMap::new();
+        for (uuid, _) in watches {
+            if let Ok(res) = self.set_history_limit(&uuid, limit).await {
+                results.insert(uuid, res);
+            }
+        }
+
+        Ok(serde_json::to_value(results)?)
     }
 
     pub async fn get_snapshot_info(
