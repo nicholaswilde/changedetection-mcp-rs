@@ -27,7 +27,14 @@ impl Respond for RetryResponder {
 #[tokio::test]
 async fn test_api_client_retries_on_failure() {
     let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    // Use a unique cache directory for this test to avoid cache hits from previous runs or other tests
+    let cache_dir = format!("/tmp/changedetection-mcp-test-{}", uuid::Uuid::new_v4());
+    let client = Client::new_full(
+        mock_server.uri(),
+        "test_api_key".to_string(),
+        std::time::Duration::from_secs(10),
+        Some(cache_dir),
+    );
 
     let count = Arc::new(AtomicUsize::new(0));
     Mock::given(method("GET"))
@@ -57,7 +64,14 @@ async fn test_api_client_retries_on_failure() {
 #[tokio::test]
 async fn test_api_client_caching() {
     let mock_server = MockServer::start().await;
-    let client = Client::new(mock_server.uri(), "test_api_key".to_string());
+    // Use a unique cache directory for this test
+    let cache_dir = format!("/tmp/changedetection-mcp-test-{}", uuid::Uuid::new_v4());
+    let client = Client::new_full(
+        mock_server.uri(),
+        "test_api_key".to_string(),
+        std::time::Duration::from_secs(10),
+        Some(cache_dir),
+    );
 
     let response_body = json!({
         "watch_id_1": {

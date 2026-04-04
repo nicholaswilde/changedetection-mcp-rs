@@ -103,6 +103,15 @@ impl Client {
     }
 
     pub fn new_with_timeout(base_url: String, api_key: String, timeout: Duration) -> Self {
+        Self::new_full(base_url, api_key, timeout, None)
+    }
+
+    pub fn new_full(
+        base_url: String,
+        api_key: String,
+        timeout: Duration,
+        cache_path: Option<String>,
+    ) -> Self {
         let mut headers = HeaderMap::new();
         if let Ok(val) = HeaderValue::from_str(&api_key) {
             headers.insert("x-api-key", val);
@@ -117,11 +126,13 @@ impl Client {
         // Retry strategy: exponential backoff with 3 retries
         let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
 
+        let cache_dir = cache_path.unwrap_or_else(|| "/tmp/changedetection-mcp-cache".to_string());
+
         let http_client = ClientBuilder::new(reqwest_client)
             .with(RetryTransientMiddleware::new_with_policy(retry_policy))
             .with(Cache(HttpCache {
                 mode: CacheMode::Default,
-                manager: CACacheManager::new("/tmp/changedetection-mcp-cache".into(), true),
+                manager: CACacheManager::new(cache_dir.into(), true),
                 options: HttpCacheOptions::default(),
             }))
             .build();

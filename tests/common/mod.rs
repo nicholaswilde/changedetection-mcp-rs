@@ -18,7 +18,14 @@ impl MockApp {
 
     pub async fn new_with_timeout(timeout: std::time::Duration) -> Self {
         let server = MockServer::start().await;
-        let client = Client::new_with_timeout(server.uri(), "test_api_key".to_string(), timeout);
+        // Use a unique cache directory for each test instance to avoid cross-test interference
+        let cache_dir = format!("/tmp/changedetection-mcp-test-{}", uuid::Uuid::new_v4());
+        let client = changedetection_mcp_rs::api::Client::new_full(
+            server.uri(),
+            "test_api_key".to_string(),
+            timeout,
+            Some(cache_dir),
+        );
         let mcp = McpServer::new(client.clone());
 
         Self {
