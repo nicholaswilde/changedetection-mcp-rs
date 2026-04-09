@@ -7,6 +7,7 @@ use std::env;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv::dotenv().ok();
     let args = Args::parse();
 
     let _guard = init_tracing(
@@ -17,9 +18,9 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::debug!("Arguments parsed: {:?}", args);
 
-    let api_key = args
-        .api_key
-        .expect("CHANGEDETECTION_API_KEY not set (via --api-key or env)");
+    let api_key = args.api_key.ok_or_else(|| {
+        anyhow::anyhow!("CHANGEDETECTION_API_KEY not set (via --api-key or env)")
+    })?;
 
     let base_url = env::var("CHANGEDETECTION_BASE_URL")
         .unwrap_or_else(|_| "http://localhost:5000".to_string());
