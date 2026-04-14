@@ -9,7 +9,7 @@ repository = "https://github.com/nicholaswilde/changedetection-mcp-rs"
 readme = "README.md"
 
 [dependencies]
-tokio = { version = "1.37.0", features = ["full"] }
+tokio = { version = "1.51.1", features = ["full"] }
 reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
 serde = { version = "1.0.201", features = ["derive"] }
 serde_json = "1.0.117"
