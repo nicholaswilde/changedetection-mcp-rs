@@ -87,7 +87,8 @@ async fn test_mcp_watch_ops_state_and_trigger() {
 
     // Trigger
     Mock::given(method("GET"))
-        .and(path(format!("/api/v1/watch/{}/recheck", uuid)))
+        .and(path(format!("/api/v1/watch/{}", uuid)))
+        .and(query_param("recheck", "true"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({"status": "success"})))
         .mount(&app.server)
         .await;

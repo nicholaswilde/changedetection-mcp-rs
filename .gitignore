@@ -34,3 +34,7 @@ config.yml
 lcov.info
 
 **/settings.json
+
+# Test logs
+test_log*
+*.log

@@ -379,7 +379,7 @@ impl Client {
     }
 
     pub async fn trigger_check(&self, uuid: &str) -> Result<serde_json::Value, ApiError> {
-        let url = format!("{}/api/v1/watch/{}/recheck", self.base_url, uuid);
+        let url = format!("{}/api/v1/watch/{}?recheck=true", self.base_url, uuid);
         let response = self
             .http_client
             .get(&url)

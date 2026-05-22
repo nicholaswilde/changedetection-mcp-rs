@@ -374,6 +374,7 @@ impl McpServer {
 
         let app = Router::new()
             .route("/", post(http_rpc_handler))
+            .route("/health", axum::routing::get(health_handler))
             .layer(tower_http::trace::TraceLayer::new_for_http())
             .with_state(state);
 
@@ -382,6 +383,16 @@ impl McpServer {
 
         Ok(())
     }
+}
+
+async fn health_handler() -> (StatusCode, Json<serde_json::Value>) {
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "status": "ok",
+            "message": "ChangeDetection MCP Server is running"
+        })),
+    )
 }
 
 #[derive(Deserialize, Serialize)]

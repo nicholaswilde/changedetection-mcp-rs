@@ -1,0 +1,34 @@
+# /release
+
+Automates the versioning, tagging, and deployment process for the project.
+
+## Description
+This skill handles the end-to-end release process: extracting the current version, incrementing the patch version, updating configuration and documentation, committing changes, creating git tags, and pushing atomically to the remote repository.
+
+## Protocol
+
+1. **Extract and Calculate Version:**
+   - Read `Cargo.toml` to locate the `version` field (e.g., `version = "0.1.15"`).
+   - Calculate the new patch version by incrementing the last number (e.g., `0.1.15` -> `0.1.16`).
+
+2. **Update Files:**
+   - Update the `version` field in `Cargo.toml` with the new version.
+   - Run `cargo check` to automatically update the version in `Cargo.lock`.
+   - Locate and update the version string in the `[!WARNING]` section of `README.md` (e.g., `(v0.1.15)` -> `(v0.1.16)`). You can use a script or a command like `sed -i` to perform this substitution.
+
+3. **Verify Git State:**
+   - Check `git status --porcelain` to ensure there are no unexpected local modifications.
+   - Run `git pull --rebase` to ensure the local branch is synchronized with `origin main`.
+
+4. **Commit and Tag Changes:**
+   - Stage `Cargo.toml`, `Cargo.lock`, and `README.md`.
+   - Commit the changes with the exact message: `chore: Bump version to <new_version>`.
+   - Create an annotated git tag: `git tag -a v<new_version> -m "<new_version>"`.
+   - **NOTE:** Use non-interactive command flags (e.g., `git commit -m`, `git tag -a -m`) to prevent terminal prompts or editor spawning.
+
+5. **Atomic Push:**
+   - Push the branch and the new tag atomically:
+     `git push --atomic origin main v<new_version>`
+
+6. **Error Handling:**
+   - If any step fails, stop immediately, do not push, and report the detailed error to the user.

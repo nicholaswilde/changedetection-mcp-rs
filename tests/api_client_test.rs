@@ -86,8 +86,10 @@ async fn test_trigger_check() {
         "status": "success"
     });
 
-    app.mock_get(
-        &format!("/api/v1/watch/{}/recheck", uuid),
+    app.mock_get_with_query(
+        &format!("/api/v1/watch/{}", uuid),
+        "recheck",
+        "true",
         200,
         Some(response_body),
     )

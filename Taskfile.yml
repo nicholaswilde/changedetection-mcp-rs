@@ -13,7 +13,7 @@ tasks:
         msg: ".env file doens't exist"
     cmds:
       - sops -e --input-type dotenv --output-type dotenv .env > .env.enc
-      - sops -e --input-type json --output-type json .gemini/settings.json > .gemini/settings.json.enc
+      - sops -e --input-type json --output-type json .agents/settings.json > .agents/settings.json.enc
   decrypt:
     desc: Decrypt files using SOPS
     preconditions:
@@ -21,7 +21,7 @@ tasks:
         msg: ".env.enc doesn't exist"
     cmds:
       - sops -d --input-type dotenv --output-type dotenv .env.enc > .env
-      - sops -d --input-type json --output-type json .gemini/settings.json.enc > .gemini/settings.json
+      - sops -d --input-type json --output-type json .agents/settings.json.enc > .agents/settings.json
 
   clippy:
     desc: Run cargo clippy
