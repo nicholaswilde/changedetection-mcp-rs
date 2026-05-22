@@ -3,7 +3,7 @@
 [![task](https://img.shields.io/badge/Task-Enabled-brightgreen?style=for-the-badge&logo=task&logoColor=white)](https://taskfile.dev/#/)
 
 > [!WARNING]
-> This project is currently in active development (v0.1.5) and is **not production-ready**.
+> This project is currently in active development (v0.1.6) and is **not production-ready**.
 > Features may change, and breaking changes may occur without notice. **Use this MCP server at your own risk.**
 
 A Rust implementation of a [ChangeDetection.io](https://changedetection.io/) [MCP (Model Context Protocol) server](https://modelcontextprotocol.io/docs/getting-started/intro). This server connects to a ChangeDetection.io instance and exposes tools to monitor website changes via the Model Context Protocol.
